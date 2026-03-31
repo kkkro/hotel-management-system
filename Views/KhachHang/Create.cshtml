@@ -1,0 +1,100 @@
+@model WebKhachSan.Models.KhachHang
+
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Thêm Khách Hàng";
+}
+
+<div class="container-fluid py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Khách hàng</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Thêm mới</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="mb-4">
+        <h2 class="mb-1 fw-bold">Thêm Khách Hàng Mới</h2>
+        <p class="text-muted">Nhập thông tin khách hàng vào form bên dưới</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <form asp-action="Create">
+                        <div class="mb-3">
+                            <label asp-for="MaKhachHang" class="form-label fw-semibold">Mã Khách Hàng</label>
+                            <input asp-for="MaKhachHang" class="form-control" placeholder="VD: KH001" />
+                            <span asp-validation-for="MaKhachHang" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="TenKhachHang" class="form-label fw-semibold">Tên Khách Hàng</label>
+                            <input asp-for="TenKhachHang" class="form-control" placeholder="Nhập tên khách hàng" />
+                            <span asp-validation-for="TenKhachHang" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="DienThoai" class="form-label fw-semibold">Điện Thoại</label>
+                                    <input asp-for="DienThoai" type="tel" class="form-control" placeholder="VD: 0912345678" />
+                                    <span asp-validation-for="DienThoai" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Cccd" class="form-label fw-semibold">CCCD</label>
+                                    <input asp-for="Cccd" class="form-control" placeholder="Nhập số CCCD" />
+                                    <span asp-validation-for="Cccd" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DiaChi" class="form-label fw-semibold">Địa Chỉ</label>
+                            <textarea asp-for="DiaChi" class="form-control" rows="3" placeholder="Nhập địa chỉ đầy đủ"></textarea>
+                            <span asp-validation-for="DiaChi" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex gap-2 pt-3">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-check-circle"></i> Lưu
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                                <i class="bi bi-x-circle"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="col-lg-4">
+            <div class="card border-0 bg-light mb-3">
+                <div class="card-body">
+                    <h6 class="card-title fw-bold">
+                        <i class="bi bi-info-circle"></i> Lưu ý
+                    </h6>
+                    <ul class="small list-unstyled">
+                        <li><i class="bi bi-check-circle text-success"></i> <span class="ms-2">Mã khách hàng phải là duy nhất</span></li>
+                        <li><i class="bi bi-check-circle text-success"></i> <span class="ms-2">CCCD cũng phải là duy nhất</span></li>
+                        <li><i class="bi bi-check-circle text-success"></i> <span class="ms-2">Tên khách hàng là bắt buộc</span></li>
+                        <li><i class="bi bi-check-circle text-success"></i> <span class="ms-2">Các thông tin này sẽ được dùng trong hóa đơn</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">

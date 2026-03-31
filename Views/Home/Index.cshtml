@@ -1,0 +1,643 @@
+﻿@using System.Collections.Generic
+@using WebKhachSan.Models
+
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Bảng điều khiển";
+
+    int tongPhong = ViewBag.TongPhong ?? 0;
+    int phongTrong = ViewBag.PhongTrong ?? 0;
+    int phongCoKhach = ViewBag.PhongCoKhach ?? 0;
+    int phongBaoTri = ViewBag.PhongBaoTri ?? 0;
+    int phongDaDat = ViewBag.PhongDaDat ?? 0;
+    int tongKhachHang = ViewBag.TongKhachHang ?? 0;
+    IEnumerable<Phong> danhSachPhong = ViewBag.DanhSachPhong ?? new List<Phong>();
+    IEnumerable<ThuePhong> lichNhanPhong = ViewBag.LichNhanPhong ?? new List<ThuePhong>();
+
+    decimal tilePhongTrong = tongPhong > 0 ? (phongTrong * 100m / tongPhong) : 0;
+}
+
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0d1c2e;
+        margin: 0;
+    }
+
+    .page-subtitle {
+        color: #6c757d;
+        font-size: 0.95rem;
+        margin-top: 0.5rem;
+    }
+
+    .metric-card {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .metric-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .metric-card.primary {
+        border-left-color: #00236f;
+    }
+
+    .metric-card.success {
+        border-left-color: #006c49;
+    }
+
+    .metric-card.warning {
+        border-left-color: #ef9900;
+    }
+
+    .metric-card.danger {
+        border-left-color: #ba1a1a;
+    }
+
+    .metric-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #757682;
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #0d1c2e;
+        line-height: 1;
+    }
+
+    .metric-trending {
+        font-size: 0.7rem;
+        color: #6c757d;
+        margin-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .metric-trending.up {
+        color: #006c49;
+    }
+
+    .metric-trending.down {
+        color: #ba1a1a;
+    }
+
+    .room-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+
+    .room-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        border-left: 4px solid;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        position: relative;
+    }
+
+    .room-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .room-card.available {
+        border-left-color: #006c49;
+    }
+
+    .room-card.occupied {
+        border-left-color: #00236f;
+    }
+
+    .room-card.reserved {
+        border-left-color: #ef9900;
+    }
+
+    .room-card.maintenance {
+        border-left-color: #ba1a1a;
+    }
+
+    .room-number {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0d1c2e;
+    }
+
+    .room-type {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: rgba(0, 35, 111, 0.1);
+        color: #00236f;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        display: inline-block;
+        margin-top: 0.5rem;
+    }
+
+    .room-status {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+
+    .room-detail {
+        font-size: 0.65rem;
+        color: #6c757d;
+        margin-top: 0.35rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0d1c2e;
+        margin: 2rem 0 1rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .section-title a {
+        font-size: 0.75rem;
+        color: #00236f;
+        text-decoration: none;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .section-title a:hover {
+        text-decoration: underline;
+    }
+
+    .checkin-item {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .checkin-guest {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+    }
+
+    .guest-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #00236f, #4059aa);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .guest-info h5 {
+        margin: 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #0d1c2e;
+    }
+
+    .guest-info p {
+        margin: 0;
+        font-size: 0.7rem;
+        color: #6c757d;
+    }
+
+    .checkin-time {
+        text-align: right;
+    }
+
+    .checkin-time .time {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #00236f;
+    }
+
+    .checkin-time .note {
+        font-size: 0.65rem;
+        color: #6c757d;
+    }
+
+    .insight-card {
+        background: linear-gradient(135deg, #00236f 0%, #4059aa 100%);
+        color: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .insight-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+        filter: blur(40px);
+    }
+
+    .insight-card h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0 0 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .insight-card p {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .insight-footer {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .insight-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .insight-revenue {
+        flex: 1;
+    }
+
+    .insight-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .insight-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 0.25rem;
+    }
+
+    .insight-trend {
+        font-size: 0.6rem;
+        color: #4edea3;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+
+    .legend {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6c757d;
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Tổng quan hôm nay</h1>
+    <p class="page-subtitle">Thứ @(DateTime.Now.ToString("dddd", new System.Globalization.CultureInfo("vi-VN"))
+        ), ngày @DateTime.Now.ToString("dd/MM/yyyy") — @DateTime.Now.ToString("HH:mm")</p>
+</div>
+
+<!-- Metrics Grid -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-3">
+        <div class="metric-card primary">
+            <div class="metric-label">Tổng số phòng</div>
+            <div class="metric-value">@tongPhong</div>
+            <div class="metric-trending">
+                <i class="bi bi-graph-up"></i> 2% so với hôm qua
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="metric-card success">
+            <div class="metric-label">Phòng trống</div>
+            <div class="metric-value">@phongTrong</div>
+            <div class="metric-trending">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #006c49;"></span>
+                @tilePhongTrong.ToString("F1")% Công suất
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="metric-card warning">
+            <div class="metric-label">Đang sử dụng</div>
+            <div class="metric-value">@phongCoKhach</div>
+            <div class="metric-trending">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #ef9900;"></span>
+                @phongDaDat lượt trả phòng hôm nay
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="metric-card danger">
+            <div class="metric-label">Bảo trì</div>
+            <div class="metric-value">@phongBaoTri</div>
+            <div class="metric-trending down">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #ba1a1a;"></span>
+                Cần sửa chữa gấp
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="metric-card primary">
+            <div class="metric-label">Khách hàng</div>
+            <div class="metric-value">@tongKhachHang</div>
+            <div class="metric-trending">
+                <i class="bi bi-graph-up"></i> Khách hàng trong hệ thống
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room Status Section -->
+<div>
+    <div class="section-title">
+        <span>Sơ đồ trạng thái phòng</span>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-dot" style="background: #006c49;"></div>
+            <span>Phòng trống</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background: #00236f;"></div>
+            <span>Đang sử dụng</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background: #ef9900;"></div>
+            <span>Đã đặt</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background: #ba1a1a;"></div>
+            <span>Bảo trì</span>
+        </div>
+    </div>
+
+    <div class="room-grid">
+        @foreach (var phong in danhSachPhong.Take(24))
+        {
+            var statusClass = "available";
+            var statusText = "";
+            var statusColor = "#006c49";
+
+            switch (phong.TrangThai)
+            {
+                case "Có khách":
+                    statusClass = "occupied";
+                    statusText = "Có khách";
+                    statusColor = "#00236f";
+                    break;
+                case "Đã đặt":
+                    statusClass = "reserved";
+                    statusText = "Đã đặt";
+                    statusColor = "#ef9900";
+                    break;
+                case "Bảo trì":
+                    statusClass = "maintenance";
+                    statusText = "Bảo trì";
+                    statusColor = "#ba1a1a";
+                    break;
+                default:
+                    statusText = "Trống";
+                    break;
+            }
+
+            var currentRental = phong.CtthuePhongs?.FirstOrDefault()?.MaThuePhongNavigation;
+
+            <div class="room-card @statusClass">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="room-number">@phong.SoPhong</div>
+                    <span class="room-type">@phong.MaLoaiPhongNavigation?.TenLoaiPhong</span>
+                </div>
+                <div class="room-status">@statusText</div>
+
+                @if (phong.TrangThai == "Có khách" && currentRental != null)
+                {
+                    <div class="room-detail">
+                        <i class="bi bi-person-fill" style="font-size: 0.6rem;"></i>
+                        @currentRental.MaKhachHangNavigation?.TenKhachHang
+                    </div>
+                    <div class="room-detail">
+                        <i class="bi bi-box-arrow-right" style="font-size: 0.6rem;"></i>
+                        Trả: @currentRental.NgayTra?.ToString("dd/MM")
+                    </div>
+                }
+                else if (phong.TrangThai == "Đã đặt" && currentRental != null)
+                {
+                    <div class="room-detail">
+                        <i class="bi bi-person-fill" style="font-size: 0.6rem;"></i>
+                        @currentRental.MaKhachHangNavigation?.TenKhachHang
+                    </div>
+                    <div class="room-detail">
+                        <i class="bi bi-box-arrow-left" style="font-size: 0.6rem;"></i>
+                        Đến: @currentRental.NgayNhan?.ToString("HH:mm") Hôm nay
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Upcoming Check-ins & Insights -->
+<div class="row mt-4">
+    <div class="col-lg-8">
+        <div class="section-title">
+            <span>Lượt nhận phòng sắp tới</span>
+            <a href="/ThuePhong/Index">Xem tất cả lịch trình</a>
+        </div>
+
+
+    </div>
+
+    <div class="col-lg-4">
+        <div class="insight-card">
+            <h4>Nhận định của Quản lý</h4>
+            <p>Công suất phòng dự kiến đạt 94% vào cuối tuần này. Đảm bảo lịch trình dọn phòng được tối ưu hóa cho các lượt nhận phòng sớm vào thứ Sáu.</p>
+
+            <div class="insight-footer">
+                <div class="insight-icon">
+                    <i class="bi bi-stars"></i>
+                </div>
+                <div class="insight-revenue">
+                    <div class="insight-label">Dự báo doanh thu</div>
+                    <div class="insight-value">
+                        +$12,400
+                        <span class="insight-trend">+14%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room Type Management Section -->
+<section class="mt-5">
+    <div class="section-title">
+        <span>Quản lý loại phòng</span>
+        <a href="/LoaiPhong/Create" class="btn btn-sm btn-primary" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; padding: 0.5rem 1rem;">
+            <i class="bi bi-plus-circle"></i> Thêm loại mới
+        </a>
+    </div>
+
+    <div style="background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; margin: 0;">
+                <thead>
+                    <tr style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                        <th style="padding: 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #757682;">Mã Loại</th>
+                        <th style="padding: 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #757682;">Tên Loại</th>
+                        <th style="padding: 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #757682;">Mô Tả</th>
+                        <th style="padding: 1rem; text-align: center; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #757682;">Khách Tối Đa</th>
+                        <th style="padding: 1rem; text-align: center; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #757682;">Giá Hiện Tại</th>
+                        <th style="padding: 1rem; text-align: center; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #757682;">Số Phòng</th>
+                        <th style="padding: 1rem; text-align: center; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #757682;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        IEnumerable<LoaiPhong> danhSachLoaiPhong = ViewBag.DanhSachLoaiPhong ?? new List<LoaiPhong>();
+                    }
+
+                    @if (danhSachLoaiPhong.Count() > 0)
+                    {
+                        @foreach (var loaiPhong in danhSachLoaiPhong)
+                        {
+                            var currentPrice = ((IEnumerable<GiaPhong>)loaiPhong.GiaPhongs)?
+                                .Where(g => g.NgayBatDau <= DateTime.Now && 
+                                           (g.NgayKetThuc == null || g.NgayKetThuc >= DateTime.Now))
+                                .OrderByDescending(g => g.NgayBatDau)
+                                .FirstOrDefault();
+
+                            var soPhong = loaiPhong.Phongs?.Count() ?? 0;
+
+                            <tr style="border-bottom: 1px solid #e9ecef; transition: all 0.3s ease;">
+                                <td style="padding: 1rem; font-weight: 600; color: #00236f;">@loaiPhong.MaLoaiPhong</td>
+                                <td style="padding: 1rem; font-weight: 600; color: #0d1c2e;">@loaiPhong.TenLoaiPhong</td>
+                                <td style="padding: 1rem; color: #6c757d; font-size: 0.9rem; max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    @loaiPhong.MoTa
+                                </td>
+                                <td style="padding: 1rem; text-align: center;">
+                                    <span style="display: inline-block; background: #f0f3ff; color: #00236f; padding: 0.35rem 0.75rem; border-radius: 0.35rem; font-size: 0.85rem; font-weight: 600;">
+                                        @loaiPhong.SoNguoiToiDa
+                                    </span>
+                                </td>
+                                <td style="padding: 1rem; text-align: center; font-weight: 600; color: #00a651;">
+                                    @if (currentPrice != null)
+                                    {
+                                        @currentPrice.Gia?.ToString("N0") <span style="color: #6c757d; font-weight: 400; font-size: 0.8rem;">VND</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="display: inline-block; background: #fff3cd; color: #856404; padding: 0.35rem 0.75rem; border-radius: 0.35rem; font-size: 0.75rem; font-weight: 600;">Chưa có giá</span>
+                                    }
+                                </td>
+                                <td style="padding: 1rem; text-align: center;">
+                                    <span style="display: inline-block; background: #e3f0ff; color: #00236f; padding: 0.35rem 0.75rem; border-radius: 0.35rem; font-size: 0.85rem; font-weight: 600;">
+                                        @soPhong
+                                    </span>
+                                </td>
+                                <td style="padding: 1rem; text-align: center;">
+                                    <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                                        <a href="/LoaiPhong/Details/@loaiPhong.MaLoaiPhong" class="btn btn-sm" style="background: #e3f0ff; color: #00236f; padding: 0.35rem 0.75rem; font-size: 0.8rem; border: none; border-radius: 0.35rem; text-decoration: none; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                            <i class="bi bi-eye" style="font-size: 0.9rem;"></i> Xem
+                                        </a>
+                                        <a href="/LoaiPhong/Edit/@loaiPhong.MaLoaiPhong" class="btn btn-sm" style="background: #fff3cd; color: #856404; padding: 0.35rem 0.75rem; font-size: 0.8rem; border: none; border-radius: 0.35rem; text-decoration: none; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                            <i class="bi bi-pencil" style="font-size: 0.9rem;"></i> Sửa
+                                        </a>
+                                        <a href="/LoaiPhong/Delete/@loaiPhong.MaLoaiPhong" class="btn btn-sm" style="background: #ffe3e3; color: #ba1a1a; padding: 0.35rem 0.75rem; font-size: 0.8rem; border: none; border-radius: 0.35rem; text-decoration: none; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                            <i class="bi bi-trash" style="font-size: 0.9rem;"></i> Xóa
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" style="padding: 2rem; text-align: center; color: #6c757d;">
+                                <i class="bi bi-inbox" style="font-size: 2rem; margin-bottom: 0.5rem; display: block; opacity: 0.5;"></i>
+                                <p>Chưa có loại phòng nào. <a href="/LoaiPhong/Create" style="color: #00236f; font-weight: 600;">Thêm loại phòng ngay</a></p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,254 @@
+@{
+    ViewData["Title"] = "Đăng nhập | Quản lý Khách sạn";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --primary: #00236f;
+            --primary-container: #1e3a8a;
+            --on-primary: #ffffff;
+            --surface: #f8f9ff;
+            --surface-container: #e6eeff;
+            --surface-container-high: #dce9ff;
+            --surface-container-highest: #d5e3fc;
+            --surface-variant: #d5e3fc;
+            --on-surface: #0d1c2e;
+            --on-surface-variant: #444651;
+            --outline: #757682;
+            --outline-variant: #c5c5d3;
+            --error: #ba1a1a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--surface);
+            color: var(--on-surface);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .bg-login-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+        }
+
+        .input-field {
+            position: relative;
+        }
+
+        .input-field input {
+            transition: all 0.3s ease;
+        }
+
+        .input-field input:focus {
+            background-color: #ffffff;
+        }
+
+        .input-underline {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 2px;
+            width: 0;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .input-field input:focus ~ .input-underline,
+        .input-field input:not(:placeholder-shown) ~ .input-underline {
+            width: 100%;
+        }
+
+        .btn-login {
+            background: linear-gradient(to right, var(--primary), var(--primary-container));
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 35, 111, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+        }
+
+
+        .animate-slide-in {
+            animation: slideInUp 0.8s ease-out forwards;
+        }
+
+        .icon-button {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .icon-button:hover {
+            color: var(--on-surface);
+        }
+    </style>
+</head>
+<body class="min-h-screen w-full flex items-center justify-center overflow-hidden">
+    <!-- Background Layer -->
+    <div class="absolute inset-0 z-0 bg-login-hero"></div>
+    <div class="absolute inset-0 z-10 bg-gradient-to-br from-blue-700/40 to-purple-700/30 backdrop-blur-sm"></div>
+
+    <!-- Login Container -->
+    <main class="relative z-20 w-full max-w-md px-4 animate-slide-in">
+        <div class="glass-panel p-8 md:p-10 rounded-3xl shadow-2xl ring-1 ring-white/20">
+            <!-- Brand Header -->
+            <header class="mb-10 text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 mb-6 shadow-lg">
+                    <span class="material-symbols-outlined text-white text-3xl">domain</span>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-blue-900 mb-2">Khách Sạn</h1>
+                <p class="text-sm uppercase tracking-widest text-gray-600 font-medium">Hệ Thống Quản Lý Khách Sạn</p>
+            </header>
+
+            <!-- Error Message -->
+            @if (ViewData.ModelState.ContainsKey(string.Empty))
+            {
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-sm text-red-700 font-medium">
+                        @Html.ValidationMessage(string.Empty)
+                    </p>
+                </div>
+            }
+
+            <!-- Login Form -->
+            <form method="post" asp-action="Login" class="space-y-6">
+                <!-- Username Field -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600" for="tenDangNhap">
+                        Tên Đăng Nhập
+                    </label>
+                    <div class="relative group input-field">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-500 group-focus-within:text-blue-600 transition-colors">
+                            person
+                        </span>
+                        <input 
+                            class="w-full pl-12 pr-4 py-3 bg-blue-50 border border-transparent rounded-lg focus:outline-none focus:bg-white transition-all duration-300 placeholder:text-gray-400 text-gray-900"
+                            id="tenDangNhap"
+                            name="tenDangNhap"
+                            placeholder="Nhập tên đăng nhập"
+                            required
+                            autofocus
+                            type="text"
+                        />
+                        <div class="input-underline"></div>
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-end">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600" for="matKhau">
+                            Mật Khẩu
+                        </label>
+                        <a class="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors" href="#">
+                            Quên mật khẩu?
+                        </a>
+                    </div>
+                    <div class="relative group input-field">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-500 group-focus-within:text-blue-600 transition-colors">
+                            lock
+                        </span>
+                        <input 
+                            class="w-full pl-12 pr-12 py-3 bg-blue-50 border border-transparent rounded-lg focus:outline-none focus:bg-white transition-all duration-300 placeholder:text-gray-400 text-gray-900"
+                            id="matKhau"
+                            name="matKhau"
+                            placeholder="••••••••"
+                            required
+                            type="password"
+                        />
+                        <button class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors icon-button" type="button" onclick="togglePasswordVisibility()">
+                            <span class="material-symbols-outlined" id="toggleIcon">visibility</span>
+                        </button>
+                        <div class="input-underline"></div>
+                    </div>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="flex items-center space-x-3">
+                    <input 
+                        class="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        id="rememberMe"
+                        name="rememberMe"
+                        type="checkbox"
+                    />
+                    <label class="text-sm font-medium text-gray-700 cursor-pointer select-none" for="rememberMe">
+                        Ghi nhớ trong 30 ngày
+                    </label>
+                </div>
+
+                <!-- Login Button -->
+                <button 
+                    class="w-full py-3 px-6 btn-login font-bold rounded-lg shadow-md flex items-center justify-center group mt-8"
+                    type="submit"
+                >
+                    <span>Đăng Nhập Vào Hệ Thống</span>
+                    <span class="material-symbols-outlined ml-2 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </button>
+            </form>
+
+            <!-- Footer Links -->
+            <footer class="mt-8 pt-8 border-t border-gray-200 text-center">
+                <p class="text-sm text-gray-600">
+                    Cần hỗ trợ? 
+                    <a class="font-bold text-blue-600 hover:underline underline-offset-4" href="#">Liên hệ quản trị viên</a>
+                </p>
+            </footer>
+        </div>
+
+        <!-- Help Links -->
+        <div class="mt-8 flex justify-center gap-6">
+            <a class="flex items-center text-xs font-bold text-white/80 hover:text-white transition-colors uppercase tracking-widest" href="#">
+                <span class="material-symbols-outlined text-sm mr-2">help_outline</span>
+                Trạng Thái Hệ Thống
+            </a>
+            <a class="flex items-center text-xs font-bold text-white/80 hover:text-white transition-colors uppercase tracking-widest" href="#">
+                <span class="material-symbols-outlined text-sm mr-2">security</span>
+                Chính Sách Bảo Mật
+            </a>
+        </div>
+    </main>
+
+    <script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('matKhau');
+            const toggleIcon = document.getElementById('toggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.textContent = 'visibility_off';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.textContent = 'visibility';
+            }
+        }
+    </script>
+</body>
+</html>

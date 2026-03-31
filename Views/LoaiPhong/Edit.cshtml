@@ -1,0 +1,77 @@
+@model WebKhachSan.Models.LoaiPhong
+
+@{    Layout = "~/Views/Shared/_DashboardLayout.cshtml";    ViewData["Title"] = "Chỉnh sửa Loại Phòng";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Loại Phòng</a></li>
+                    <li class="breadcrumb-item active">Chỉnh sửa</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light border-bottom">
+                    <h3 class="mb-0 fw-bold text-warning">
+                        <i class="bi bi-pencil-square"></i> Chỉnh Sửa Loại Phòng
+                    </h3>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small">Mã Loại Phòng</label>
+                            <div class="form-control form-control-lg bg-light" disabled>
+                                @Model.MaLoaiPhong
+                            </div>
+                            <input type="hidden" asp-for="MaLoaiPhong" />
+                            <small class="text-muted d-block mt-1">Mã không thể thay đổi</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="TenLoaiPhong" class="form-label fw-bold">Tên Loại Phòng <span class="text-danger">*</span></label>
+                            <input asp-for="TenLoaiPhong" class="form-control form-control-lg"
+                                   aria-describedby="TenLoaiPhong-error" />
+                            <span asp-validation-for="TenLoaiPhong" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="MoTa" class="form-label fw-bold">Mô Tả</label>
+                            <textarea asp-for="MoTa" class="form-control" rows="4"
+                                      aria-describedby="MoTa-error"></textarea>
+                            <span asp-validation-for="MoTa" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="SoNguoiToiDa" class="form-label fw-bold">Số Người Tối Đa <span class="text-danger">*</span></label>
+                            <input asp-for="SoNguoiToiDa" type="number" class="form-control form-control-lg"
+                                   aria-describedby="SoNguoiToiDa-error" />
+                            <span asp-validation-for="SoNguoiToiDa" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-check-circle"></i> Cập Nhật
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                                <i class="bi bi-x-circle"></i> Hủy
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+}

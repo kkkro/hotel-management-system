@@ -1,0 +1,87 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
+using WebKhachSan.Models;
+
+namespace WebKhachSan.Controllers
+{
+    [Authorize]
+    public class HomeController : Controller
+    {
+        private readonly ILogger<HomeController> _logger;
+        private readonly QuanLyKhachSanContext _context;
+
+        public HomeController(ILogger<HomeController> logger, QuanLyKhachSanContext context)
+        {
+            _logger = logger;
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            // Thống kê phòng
+            var tongPhong = await _context.Phongs.CountAsync();
+            var phongTrong = await _context.Phongs.Where(p => p.TrangThai == "Trống").CountAsync();
+            var phongCoKhach = await _context.Phongs.Where(p => p.TrangThai == "Có khách").CountAsync();
+            var phongBaoTri = await _context.Phongs.Where(p => p.TrangThai == "Bảo trì").CountAsync();
+            var phongDaDat = await _context.Phongs.Where(p => p.TrangThai == "Đã đặt").CountAsync();
+
+            // Lấy danh sách phòng với thông tin chi tiết
+            var danhSachPhong = await _context.Phongs
+                .Include(p => p.MaLoaiPhongNavigation)
+                .Include(p => p.CtthuePhongs)
+                    .ThenInclude(ct => ct.MaThuePhongNavigation)
+                        .ThenInclude(tp => tp.MaKhachHangNavigation)
+                .OrderBy(p => p.SoPhong)
+                .ToListAsync();
+
+            // Lấy danh sách lượt nhận phòng sắp tới (trong 24 giờ)
+            var ngayMai = DateTime.Now.AddHours(24);
+            var lichNhanPhong = await _context.ThuePhongs
+                .Include(tp => tp.MaKhachHangNavigation)
+                .Include(tp => tp.CtthuePhongs)
+                    .ThenInclude(pt => pt.MaPhongNavigation)
+                        .ThenInclude(p => p.MaLoaiPhongNavigation)
+                .Where(tp => tp.NgayNhan > DateTime.Now && tp.NgayNhan <= ngayMai)
+                .OrderBy(tp => tp.NgayNhan)
+                .Take(5)
+                .ToListAsync();
+
+            // Lấy danh sách loại phòng
+            var danhSachLoaiPhong = await _context.LoaiPhongs
+                .Include(l => l.GiaPhongs)
+                .Include(l => l.Phongs)
+                .OrderBy(l => l.MaLoaiPhong)
+                .ToListAsync();
+
+            // Thống kê khách hàng
+            var tongKhachHang = await _context.KhachHangs.CountAsync();
+
+            ViewBag.TongPhong = tongPhong;
+            ViewBag.PhongTrong = phongTrong;
+            ViewBag.PhongCoKhach = phongCoKhach;
+            ViewBag.PhongBaoTri = phongBaoTri;
+            ViewBag.PhongDaDat = phongDaDat;
+            ViewBag.TongKhachHang = tongKhachHang;
+            ViewBag.DanhSachPhong = danhSachPhong;
+            ViewBag.LichNhanPhong = lichNhanPhong;
+            ViewBag.DanhSachLoaiPhong = danhSachLoaiPhong;
+
+            _logger.LogInformation("Người dùng {0} xem dashboard", User.Identity?.Name);
+
+            return View(danhSachPhong);
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+    }
+}

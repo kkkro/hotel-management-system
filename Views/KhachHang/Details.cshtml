@@ -1,0 +1,233 @@
+@model WebKhachSan.Models.KhachHang
+
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Chi Tiết Khách Hàng";
+}
+
+<div class="container-fluid py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Khách hàng</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Chi tiết</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 fw-bold">@Model?.TenKhachHang</h2>
+            <p class="text-muted">Mã khách hàng: <strong>@Model?.MaKhachHang</strong></p>
+        </div>
+        <div class="btn-group">
+            <a asp-action="Edit" asp-route-id="@Model?.MaKhachHang" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Chỉnh Sửa
+            </a>
+            <a asp-action="Delete" asp-route-id="@Model?.MaKhachHang" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Xóa
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Quay Lại
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Thông tin cá nhân -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary bg-opacity-10 border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="bi bi-person-bounding-box"></i> Thông Tin Cá Nhân
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="text-muted small fw-semibold">ĐỊA CHỈ</label>
+                        <p class="mb-0">@Model?.DiaChi</p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="text-muted small fw-semibold">ĐIỆN THOẠI</label>
+                        <p class="mb-0">
+                            <a href="tel:@Model?.DienThoai">@Model?.DienThoai</a>
+                        </p>
+                    </div>
+                    <div class="mb-0">
+                        <label class="text-muted small fw-semibold">CCCD</label>
+                        <p class="mb-0">@Model?.Cccd</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thống kê -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 bg-gradient">
+                <div class="card-header bg-success bg-opacity-10 border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="bi bi-graph-up"></i> Thống Kê
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #0d6efd;">
+                            @(Model?.ThuePhongs?.Count ?? 0)
+                        </div>
+                        <p class="text-muted mb-0">Lần Thuê</p>
+                    </div>
+                    <div class="mb-0">
+                        <div style="font-size: 2.5rem; font-weight: bold; color: #198754;">
+                            @(Model?.DatPhongs?.Count ?? 0)
+                        </div>
+                        <p class="text-muted mb-0">Đơn Đặt Phòng</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tình trạng -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info bg-opacity-10 border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="bi bi-info-circle"></i> Tình Trạng
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="badge bg-success">Khách Hàng Hoạt Động</span>
+                    </div>
+                    @if (Model?.ThuePhongs?.Count > 0)
+                    {
+                        <p class="small text-muted">
+                            Khách hàng thân thiết với <strong>@(Model?.ThuePhongs?.Count ?? 0) lần thuê</strong>
+                        </p>
+                    }
+                    else
+                    {
+                        <p class="small text-muted">
+                            Khách hàng mới, chưa có lịch sử thuê
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lịch sử thuê phòng -->
+    @if (Model?.ThuePhongs != null && Model.ThuePhongs.Count > 0)
+    {
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-light border-0 py-3">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-calendar-event"></i> Lịch Sử Thuê Phòng (@Model.ThuePhongs.Count)
+                </h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="fw-bold text-uppercase text-muted small">Mã Thuê</th>
+                            <th class="fw-bold text-uppercase text-muted small">Ngày Nhận</th>
+                            <th class="fw-bold text-uppercase text-muted small">Ngày Trả</th>
+                            <th class="fw-bold text-uppercase text-muted small">Phòng</th>
+                            <th class="fw-bold text-uppercase text-muted small">Loại</th>
+                            <th class="text-center fw-bold text-uppercase text-muted small">Giá</th>
+                            <th class="text-center fw-bold text-uppercase text-muted small">Tình Trạng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var thue in Model.ThuePhongs)
+                        {
+                            <tr>
+                                <td class="fw-semibold text-primary">@thue.MaThuePhong</td>
+                                <td>@thue.NgayNhan?.ToString("dd/MM/yyyy")</td>
+                                <td>@thue.NgayTra?.ToString("dd/MM/yyyy") ?? "Chưa ra phòng"</td>
+                                <td>@thue.CtthuePhongs?.FirstOrDefault()?.MaPhongNavigation?.SoPhong ?? "---"</td>
+                                <td>@thue.CtthuePhongs?.FirstOrDefault()?.MaPhongNavigation?.MaLoaiPhongNavigation?.TenLoaiPhong ?? "---"</td>
+                                <td class="text-end">
+                                    @{
+                                        var giaThueTaiThoiDiem = thue.CtthuePhongs?.FirstOrDefault()?.GiaThueTaiThoiDiem ?? 0;
+                                    }
+                                    @giaThueTaiThoiDiem.ToString("N0") đ
+                                </td>
+                                <td class="text-center">
+                                    @if (thue.NgayTra.HasValue)
+                                    {
+                                        <span class="badge bg-secondary">Đã Hoàn Tất</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">Đang Thuê</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <!-- Đơn đặt phòng -->
+    @if (Model?.DatPhongs != null && Model.DatPhongs.Count > 0)
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-light border-0 py-3">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-calendar-check"></i> Đơn Đặt Phòng (@Model.DatPhongs.Count)
+                </h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="fw-bold text-uppercase text-muted small">Mã Đặt</th>
+                            <th class="fw-bold text-uppercase text-muted small">Ngày Đặt</th>
+                            <th class="fw-bold text-uppercase text-muted small">Ngày Nhận Dự Kiến</th>
+                            <th class="fw-bold text-uppercase text-muted small">Ngày Trả Dự Kiến</th>
+                            <th class="fw-bold text-uppercase text-muted small">Loại Phòng</th>
+                            <th class="text-center fw-bold text-uppercase text-muted small">Tình Trạng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var dat in Model.DatPhongs)
+                        {
+                            <tr>
+                                <td class="fw-semibold text-primary">@dat.MaDatPhong</td>
+                                <td>@dat.NgayDat?.ToString("dd/MM/yyyy")</td>
+                                <td>@dat.NgayNhanDuKien?.ToString("dd/MM/yyyy")</td>
+                                <td>@dat.NgayTraDuKien?.ToString("dd/MM/yyyy")</td>
+                                <td>@dat.CtdatPhongs?.FirstOrDefault()?.MaLoaiPhongNavigation?.TenLoaiPhong ?? "---"</td>
+                                <td class="text-center">
+                                    @if (dat.TrangThai == "Đã Hủy")
+                                    {
+                                        <span class="badge bg-danger">Đã Hủy</span>
+                                    }
+                                    else if (dat.TrangThai == "Đã Nhận")
+                                    {
+                                        <span class="badge bg-success">Đã Nhận</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info">@dat.TrangThai</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+.bg-gradient {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+</style>

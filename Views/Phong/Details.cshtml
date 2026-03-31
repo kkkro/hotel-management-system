@@ -1,0 +1,203 @@
+@model WebKhachSan.Models.Phong
+
+@{    Layout = "~/Views/Shared/_DashboardLayout.cshtml";    ViewData["Title"] = "Chi Tiết Phòng";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Phòng</a></li>
+                    <li class="breadcrumb-item active">Chi tiết</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light border-bottom">
+                    <h3 class="mb-0 fw-bold text-info">
+                        <i class="bi bi-info-circle"></i> Chi Tiết Phòng
+                    </h3>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <dl>
+                                <dt class="fw-bold text-muted small">Mã Phòng:</dt>
+                                <dd class="mb-3">
+                                    <span class="badge bg-primary">@Model.MaPhong</span>
+                                </dd>
+
+                                <dt class="fw-bold text-muted small">Số Phòng:</dt>
+                                <dd class="mb-3 fs-5 fw-bold">@Model.SoPhong</dd>
+
+                                <dt class="fw-bold text-muted small">Loại Phòng:</dt>
+                                <dd class="mb-3">
+                                    <a asp-controller="LoaiPhong" asp-action="Details" 
+                                       asp-route-id="@Model.MaLoaiPhong" class="link">
+                                        @Model.MaLoaiPhongNavigation?.TenLoaiPhong
+                                    </a>
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl>
+                                <dt class="fw-bold text-muted small">Trạng Thái:</dt>
+                                <dd class="mb-3">
+                                    @{
+                                        var badgeClass = Model.TrangThai switch
+                                        {
+                                            "Trống" => "bg-success",
+                                            "Có khách" => "bg-warning",
+                                            "Bảo trì" => "bg-danger",
+                                            "Đã đặt" => "bg-info",
+                                            _ => "bg-secondary"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass" style="font-size: 14px;">@Model.TrangThai</span>
+                                </dd>
+
+                                <dt class="fw-bold text-muted small">Sức Chứa:</dt>
+                                <dd class="mb-3">
+                                    <span class="badge bg-success" style="font-size: 14px;">
+                                        @Model.MaLoaiPhongNavigation?.SoNguoiToiDa người
+                                    </span>
+                                </dd>
+
+                                <dt class="fw-bold text-muted small">Giá Cơ Bản:</dt>
+                                <dd class="mb-3">
+                                    @{
+                                        var giaHienTai = Model.MaLoaiPhongNavigation?.GiaPhongs
+                                            ?.Where(g => g.NgayBatDau <= DateTime.Now && 
+                                                        (g.NgayKetThuc == null || g.NgayKetThuc >= DateTime.Now))
+                                            ?.FirstOrDefault();
+                                    }
+                                    @if (giaHienTai != null)
+                                    {
+                                        <span class="fw-bold text-success">@giaHienTai.Gia?.ToString("N0") VND/đêm</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">(Chưa cập nhật giá)</span>
+                                    }
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Lịch sử thuê phòng -->
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-calendar-event"></i> Lịch Sử Thuê Phòng
+                        <span class="badge bg-info">@(Model.CtthuePhongs?.Count ?? 0)</span>
+                    </h5>
+                    
+                    @if (Model.CtthuePhongs != null && Model.CtthuePhongs.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Mã Thuê Phòng</th>
+                                        <th>Khách Hàng</th>
+                                        <th>Ngày Nhận</th>
+                                        <th>Ngày Trả</th>
+                                        <th class="text-center">Số Đêm</th>
+                                        <th class="text-end">Giá/Đêm</th>
+                                        <th class="text-center">Trạng Thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var rentDetail in Model.CtthuePhongs.OrderByDescending(ct => ct.MaThuePhongNavigation.NgayNhan))
+                                    {
+                                        var ngayNhan = rentDetail.MaThuePhongNavigation?.NgayNhan;
+                                        var ngayTra = rentDetail.MaThuePhongNavigation?.NgayTra;
+                                        var soDem = (ngayTra.HasValue && ngayNhan.HasValue) 
+                                            ? (int)((ngayTra.Value - ngayNhan.Value).TotalDays) 
+                                            : 0;
+                                        var daDat = ngayTra.HasValue;
+                                        
+                                        <tr>
+                                            <td class="fw-semibold">
+                                                @rentDetail.MaThuePhong
+                                            </td>
+                                            <td>
+                                                @(rentDetail.MaThuePhongNavigation?.MaKhachHangNavigation?.TenKhachHang ?? "(Không có)")
+                                            </td>
+                                            <td>@ngayNhan?.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td>
+                                                @if (daDat)
+                                                {
+                                                    @ngayTra.Value.ToString("dd/MM/yyyy HH:mm")
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark">Còn lưu trú</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (soDem > 0)
+                                                {
+                                                    <span class="badge bg-secondary">@soDem đêm</span>
+                                                }
+                                                else if (!daDat)
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td class="text-end fw-semibold">
+                                                @if (rentDetail.GiaThueTaiThoiDiem.HasValue)
+                                                {
+                                                    <span>@rentDetail.GiaThueTaiThoiDiem.Value.ToString("N0")</span>
+                                                    <span class="text-muted small d-block">VND</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">(Không có)</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (daDat)
+                                                {
+                                                    <span class="badge bg-success">Đã trả</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-info">Đang lưu trú</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3">
+                            <i class="bi bi-inbox"></i> Chưa có lịch sử thuê phòng
+                        </p>
+                    }
+
+                    <div class="d-flex gap-3 mt-4">
+                        <a asp-action="Edit" asp-route-id="@Model.MaPhong" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Chỉnh Sửa
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.MaPhong" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Xóa
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Quay Lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
