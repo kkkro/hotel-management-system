@@ -1,6 +1,14 @@
 @{
     ViewData["Title"] = "Đăng nhập | Quản lý Khách sạn";
     Layout = null;
+    var formError = ViewData.ModelState.TryGetValue(string.Empty, out var summaryEntry)
+        ? summaryEntry.Errors.FirstOrDefault()?.ErrorMessage
+        : null;
+    var tenDangNhapValue = ViewData.ModelState.TryGetValue("tenDangNhap", out var usernameEntry)
+        ? usernameEntry.AttemptedValue
+        : string.Empty;
+    var rememberMeChecked = ViewData.ModelState.TryGetValue("rememberMe", out var rememberMeEntry)
+        && string.Equals(rememberMeEntry.AttemptedValue, "true", StringComparison.OrdinalIgnoreCase);
 }
 
 <!DOCTYPE html>
@@ -109,6 +117,36 @@
         .icon-button:hover {
             color: var(--on-surface);
         }
+
+        /* Error notification styles */
+        .error-alert {
+            animation: shakeAndFadeIn 0.5s ease-out forwards;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .error-alert.fade-out {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        @@keyframes shakeAndFadeIn {
+            0% { opacity: 0; transform: translateX(-10px); }
+            20% { transform: translateX(8px); }
+            40% { transform: translateX(-6px); }
+            60% { transform: translateX(4px); }
+            80% { transform: translateX(-2px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        .form-shake {
+            animation: formShake 0.4s ease-in-out;
+        }
+
+        @@keyframes formShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body class="min-h-screen w-full flex items-center justify-center overflow-hidden">
@@ -118,7 +156,7 @@
 
     <!-- Login Container -->
     <main class="relative z-20 w-full max-w-md px-4 animate-slide-in">
-        <div class="glass-panel p-8 md:p-10 rounded-3xl shadow-2xl ring-1 ring-white/20">
+        <div class="glass-panel p-8 md:p-10 rounded-3xl shadow-2xl ring-1 ring-white/20 @(ViewData.ModelState.ContainsKey(string.Empty) ? "form-shake" : "")" id="loginPanel">
             <!-- Brand Header -->
             <header class="mb-10 text-center">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 mb-6 shadow-lg">
@@ -129,12 +167,19 @@
             </header>
 
             <!-- Error Message -->
-            @if (ViewData.ModelState.ContainsKey(string.Empty))
+            @if (!string.IsNullOrWhiteSpace(formError))
             {
-                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p class="text-sm text-red-700 font-medium">
-                        @Html.ValidationMessage(string.Empty)
-                    </p>
+                <div class="mb-6 p-4 bg-red-50 border border-red-300 rounded-xl error-alert flex items-start gap-3 shadow-sm" id="errorAlert">
+                    <span class="material-symbols-outlined text-red-500 text-xl flex-shrink-0 mt-0.5" style="font-variation-settings: 'FILL' 1;">error</span>
+                    <div class="flex-1">
+                        <p class="text-sm text-red-800 font-semibold">Đăng nhập thất bại</p>
+                        <p class="text-sm text-red-600 mt-0.5">
+                            @formError
+                        </p>
+                    </div>
+                    <button type="button" onclick="dismissError()" class="text-red-400 hover:text-red-600 transition-colors flex-shrink-0">
+                        <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
                 </div>
             }
 
@@ -157,6 +202,7 @@
                             required
                             autofocus
                             type="text"
+                            value="@tenDangNhapValue"
                         />
                         <div class="input-underline"></div>
                     </div>
@@ -198,6 +244,7 @@
                         id="rememberMe"
                         name="rememberMe"
                         type="checkbox"
+                        checked="@rememberMeChecked"
                     />
                     <label class="text-sm font-medium text-gray-700 cursor-pointer select-none" for="rememberMe">
                         Ghi nhớ trong 30 ngày
@@ -249,6 +296,22 @@
                 toggleIcon.textContent = 'visibility';
             }
         }
+
+        function dismissError() {
+            const errorAlert = document.getElementById('errorAlert');
+            if (errorAlert) {
+                errorAlert.classList.add('fade-out');
+                setTimeout(() => errorAlert.remove(), 400);
+            }
+        }
+
+        // Auto-dismiss error after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const errorAlert = document.getElementById('errorAlert');
+            if (errorAlert) {
+                setTimeout(() => dismissError(), 5000);
+            }
+        });
     </script>
 </body>
 </html>

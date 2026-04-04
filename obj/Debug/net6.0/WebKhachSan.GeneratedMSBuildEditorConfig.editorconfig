@@ -32,8 +32,16 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2lhUGhvbmdcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/Nam4_HK2/TTTN_thayTung/WebKhachSan/WebKhachSan/Views/GiaPhong/CreateBulk.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2lhUGhvbmdcQ3JlYXRlQnVsay5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/Nam4_HK2/TTTN_thayTung/WebKhachSan/WebKhachSan/Views/GiaPhong/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2lhUGhvbmdcRGVsZXRlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Nam4_HK2/TTTN_thayTung/WebKhachSan/WebKhachSan/Views/GiaPhong/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2lhUGhvbmdcRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/Nam4_HK2/TTTN_thayTung/WebKhachSan/WebKhachSan/Views/GiaPhong/Edit.cshtml]
@@ -122,6 +130,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/Nam4_HK2/TTTN_thayTung/WebKhachSan/WebKhachSan/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Nam4_HK2/TTTN_thayTung/WebKhachSan/WebKhachSan/Views/ThuePhong/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGh1ZVBob25nXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Nam4_HK2/TTTN_thayTung/WebKhachSan/WebKhachSan/Views/ThuePhong/_AvailableRoomsModalBody.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGh1ZVBob25nXF9BdmFpbGFibGVSb29tc01vZGFsQm9keS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/Nam4_HK2/TTTN_thayTung/WebKhachSan/WebKhachSan/Views/ThuePhong/_CreateOfflineRentalForm.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGh1ZVBob25nXF9DcmVhdGVPZmZsaW5lUmVudGFsRm9ybS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/Nam4_HK2/TTTN_thayTung/WebKhachSan/WebKhachSan/Views/_ViewImports.cshtml]

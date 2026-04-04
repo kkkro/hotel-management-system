@@ -3,15 +3,14 @@
 
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
-    ViewData["Title"] = "Quản lý Loại Phòng";
+    ViewData["Title"] = "Quan ly Loai Phong";
 }
 
 <div class="container-fluid py-4">
-    <!-- Alert thông báo -->
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <strong>Thành công!</strong> @TempData["Success"]
+            <strong>Thanh cong!</strong> @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
@@ -19,107 +18,126 @@
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Lỗi!</strong> @TempData["Error"]
+            <strong>Loi!</strong> @TempData["Error"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-            <h2 class="mb-1 fw-bold">Loại Phòng</h2>
-            <p class="text-muted">Xác định các hạng mục phòng của khách sạn và các thuộc tính cốt lõi của chúng.</p>
+            <h2 class="mb-1 fw-bold">Loai Phong</h2>
+            <p class="text-muted mb-0">Quan ly loai phong va chon nhieu loai phong de tao bang gia hang loat.</p>
         </div>
-        <a asp-action="Create" class="btn btn-primary btn-lg">
-            <i class="bi bi-plus-circle"></i> Thêm loại mới
-        </a>
+        <div class="d-flex gap-2">
+            <a asp-controller="GiaPhong" asp-action="Index" class="btn btn-outline-primary">
+                <i class="bi bi-cash-stack"></i> Xem gia phong
+            </a>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Them loai moi
+            </a>
+        </div>
     </div>
 
-    <!-- Bảng danh sách -->
-    <div class="card shadow-sm border-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-4 fw-bold text-uppercase text-muted small">Mã Loại</th>
-                        <th class="fw-bold text-uppercase text-muted small">Tên Loại</th>
-                        <th class="fw-bold text-uppercase text-muted small">Mô Tả</th>
-                        <th class="text-center fw-bold text-uppercase text-muted small">Khách Tối Đa</th>
-                        <th class="text-end fw-bold text-uppercase text-muted small">Giá Hiện Tại</th>
-                        <th class="text-center fw-bold text-uppercase text-muted small">Thao Tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Count > 0)
-                    {
-                        @foreach (var item in Model)
+    <form method="get" asp-controller="GiaPhong" asp-action="CreateBulk" id="bulkLoaiPhongForm">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <strong>Chon loai phong hang loat</strong>
+                    <div class="text-muted small">Bang gia se duoc tao cho tat ca loai phong duoc chon.</div>
+                </div>
+                <button type="submit" class="btn btn-success" id="bulkLoaiPhongButton" disabled>
+                    <i class="bi bi-check2-square"></i> Gan gia cho loai phong da chon
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center" style="width: 60px;">
+                                <input type="checkbox" class="form-check-input" id="selectAllLoaiPhong" />
+                            </th>
+                            <th class="ps-4 fw-bold text-uppercase text-muted small">Ma Loai</th>
+                            <th class="fw-bold text-uppercase text-muted small">Ten Loai</th>
+                            <th class="fw-bold text-uppercase text-muted small">Mo Ta</th>
+                            <th class="text-center fw-bold text-uppercase text-muted small">Khach Toi Da</th>
+                            <th class="text-end fw-bold text-uppercase text-muted small">Gia Hien Tai</th>
+                            <th class="text-center fw-bold text-uppercase text-muted small">Thao Tac</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Count > 0)
                         {
-                            var currentPrice = ((IEnumerable<GiaPhong>)item.GiaPhongs)?
-                                .Where(g => g.NgayBatDau <= DateTime.Now && 
-                                           (g.NgayKetThuc == null || g.NgayKetThuc >= DateTime.Now))
-                                .OrderByDescending(g => g.NgayBatDau)
-                                .FirstOrDefault();
-                            
+                            @foreach (var item in Model)
+                            {
+                                var currentPrice = ((IEnumerable<GiaPhong>)item.GiaPhongs)?
+                                    .Where(g => g.NgayBatDau <= DateTime.Now && (g.NgayKetThuc == null || g.NgayKetThuc >= DateTime.Now))
+                                    .OrderByDescending(g => g.NgayBatDau)
+                                    .FirstOrDefault();
+
+                                <tr>
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input loai-phong-checkbox" name="selectedLoaiPhongIds" value="@item.MaLoaiPhong" />
+                                    </td>
+                                    <td class="ps-4 fw-semibold text-primary">@item.MaLoaiPhong</td>
+                                    <td class="fw-semibold">@item.TenLoaiPhong</td>
+                                    <td class="text-muted small" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        @item.MoTa
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-dark">@item.SoNguoiToiDa</span>
+                                    </td>
+                                    <td class="text-end fw-semibold text-success">
+                                        @if (currentPrice != null)
+                                        {
+                                            @currentPrice.Gia?.ToString("N0") <span class="text-muted small">VND</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Chua co gia</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-action="Details" asp-route-id="@item.MaLoaiPhong" class="btn btn-outline-primary" title="Xem chi tiet">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-info" title="Xem gia" onclick="viewGiaPhong('@item.MaLoaiPhong', '@item.TenLoaiPhong')">
+                                                <i class="bi bi-tag"></i>
+                                            </button>
+                                            <a asp-action="Edit" asp-route-id="@item.MaLoaiPhong" class="btn btn-outline-warning" title="Chinh sua">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.MaLoaiPhong" class="btn btn-outline-danger" title="Xoa">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
                             <tr>
-                                <td class="ps-4 fw-semibold text-primary">@item.MaLoaiPhong</td>
-                                <td class="fw-semibold">@item.TenLoaiPhong</td>
-                                <td class="text-muted small" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    @item.MoTa
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-light text-dark">@item.SoNguoiToiDa</span>
-                                </td>
-                                <td class="text-end fw-semibold text-success">
-                                    @if (currentPrice != null)
-                                    {
-                                        @currentPrice.Gia?.ToString("N0") <span class="text-muted small">VND</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-warning text-dark">Chưa có giá</span>
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a asp-action="Details" asp-route-id="@item.MaLoaiPhong" class="btn btn-outline-primary" title="Xem chi tiết">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-outline-info" title="Xem giá" onclick="viewGiaPhong('@item.MaLoaiPhong', '@item.TenLoaiPhong')">
-                                            <i class="bi bi-tag"></i>
-                                        </button>
-                                        <a asp-action="Edit" asp-route-id="@item.MaLoaiPhong" class="btn btn-outline-warning" title="Chỉnh sửa">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@item.MaLoaiPhong" class="btn btn-outline-danger" title="Xóa">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
-                                    </div>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                    <p class="mt-3">Chua co loai phong nao</p>
                                 </td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                                <p class="mt-3">Chưa có loại phòng nào</p>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+    </form>
 </div>
 
-<!-- Modal hiển thị bảng giá -->
 <div class="modal fade" id="modalGiaPhong" tabindex="-1" aria-labelledby="modalGiaPhongLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalGiaPhongLabel">
-                    Bảng Giá: <strong id="tenLoaiPhong"></strong>
+                    Bang Gia: <strong id="tenLoaiPhong"></strong>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -127,15 +145,15 @@
                 <div id="giaPhongContent">
                     <div class="text-center">
                         <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Đang tải...</span>
+                            <span class="visually-hidden">Dang tai...</span>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Dong</button>
                 <a href="#" id="addPriceBtn" class="btn btn-primary" target="_self">
-                    <i class="bi bi-plus-circle"></i> Thêm giá mới
+                    <i class="bi bi-plus-circle"></i> Them gia moi
                 </a>
             </div>
         </div>
@@ -148,50 +166,83 @@
 function viewGiaPhong(maLoaiPhong, tenLoaiPhong) {
     document.getElementById('tenLoaiPhong').textContent = tenLoaiPhong;
     document.getElementById('addPriceBtn').href = `/GiaPhong/Create?maLoaiPhong=${maLoaiPhong}`;
-    
+
     const contentDiv = document.getElementById('giaPhongContent');
-    contentDiv.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Đang tải...</span></div></div>';
-    
+    contentDiv.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Dang tai...</span></div></div>';
+
     fetch(`/LoaiPhong/GetDanhSachGia?maLoaiPhong=${maLoaiPhong}`)
         .then(response => response.json())
         .then(data => {
             if (!data || data.length === 0) {
-                contentDiv.innerHTML = '<div class="alert alert-info">Chưa có bảng giá nào</div>';
+                contentDiv.innerHTML = '<div class="alert alert-info">Chua co bang gia nao</div>';
                 return;
             }
-            
+
             let html = '<div class="table-responsive"><table class="table table-sm">';
             html += '<thead class="table-light"><tr>';
-            html += '<th>Mã Giá</th>';
-            html += '<th class="text-end">Giá (VND)</th>';
-            html += '<th>Ngày Bắt Đầu</th>';
-            html += '<th>Ngày Kết Thúc</th>';
-            html += '<th class="text-center">Trạng Thái</th>';
+            html += '<th>Ma Gia</th>';
+            html += '<th class="text-end">Gia (VND)</th>';
+            html += '<th>Ngay Bat Dau</th>';
+            html += '<th>Ngay Ket Thuc</th>';
+            html += '<th class="text-center">Trang Thai</th>';
             html += '</tr></thead><tbody>';
-            
+
             data.forEach(item => {
-                const isActive = new Date(item.ngayBatDau) <= new Date() && 
-                                (item.ngayKetThuc === null || new Date(item.ngayKetThuc) >= new Date());
-                const statusClass = isActive ? 'bg-success' : 'bg-danger';
-                const statusText = isActive ? 'Đang áp dụng' : 'Hết hạn';
-                
                 html += '<tr>';
                 html += `<td class="fw-semibold">${item.maGia}</td>`;
                 html += `<td class="text-end">${item.gia?.toLocaleString('vi-VN')}</td>`;
-                html += `<td>${new Date(item.ngayBatDau).toLocaleDateString('vi-VN')}</td>`;
-                html += `<td>${item.ngayKetThuc ? new Date(item.ngayKetThuc).toLocaleDateString('vi-VN') : '(Không giới hạn)'}</td>`;
-                html += `<td class="text-center"><span class="badge ${statusClass}">${statusText}</span></td>`;
+                html += `<td>${item.ngayBatDau}</td>`;
+                html += `<td>${item.ngayKetThuc}</td>`;
+                html += `<td class="text-center"><span class="badge ${item.trangThai === 'Dang ap dung' ? 'bg-success' : 'bg-secondary'}">${item.trangThai}</span></td>`;
                 html += '</tr>';
             });
-            
+
             html += '</tbody></table></div>';
             contentDiv.innerHTML = html;
         })
-        .catch(error => {
-            console.error('Error:', error);
-            contentDiv.innerHTML = '<div class="alert alert-danger">Lỗi khi tải dữ liệu</div>';
+        .catch(() => {
+            contentDiv.innerHTML = '<div class="alert alert-danger">Loi khi tai du lieu</div>';
         });
-    
+
     new bootstrap.Modal(document.getElementById('modalGiaPhong')).show();
 }
+
+const selectAllLoaiPhong = document.getElementById('selectAllLoaiPhong');
+const loaiPhongCheckboxes = Array.from(document.querySelectorAll('.loai-phong-checkbox'));
+const bulkLoaiPhongButton = document.getElementById('bulkLoaiPhongButton');
+const bulkLoaiPhongForm = document.getElementById('bulkLoaiPhongForm');
+
+function updateBulkLoaiPhongState() {
+    const checkedCount = loaiPhongCheckboxes.filter(checkbox => checkbox.checked).length;
+    bulkLoaiPhongButton.disabled = checkedCount === 0;
+    if (selectAllLoaiPhong) {
+        selectAllLoaiPhong.checked = checkedCount > 0 && checkedCount === loaiPhongCheckboxes.length;
+        selectAllLoaiPhong.indeterminate = checkedCount > 0 && checkedCount < loaiPhongCheckboxes.length;
+    }
+}
+
+if (selectAllLoaiPhong) {
+    selectAllLoaiPhong.addEventListener('change', function () {
+        loaiPhongCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectAllLoaiPhong.checked;
+        });
+        updateBulkLoaiPhongState();
+    });
+}
+
+loaiPhongCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', updateBulkLoaiPhongState);
+});
+
+if (bulkLoaiPhongForm) {
+    bulkLoaiPhongForm.addEventListener('submit', function (event) {
+        const hasSelection = loaiPhongCheckboxes.some(checkbox => checkbox.checked);
+        if (!hasSelection) {
+            event.preventDefault();
+            alert('Hay chon it nhat mot loai phong de gan gia.');
+        }
+    });
+}
+
+updateBulkLoaiPhongState();
 </script>

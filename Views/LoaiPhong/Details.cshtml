@@ -1,84 +1,89 @@
-@model WebKhachSan.Models.LoaiPhong
+﻿@model WebKhachSan.Models.LoaiPhong
 
-@{    Layout = "~/Views/Shared/_DashboardLayout.cshtml";    ViewData["Title"] = "Chi Tiết Loại Phòng";
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Chi tiet Loai Phong";
+
+    string NormalizeTrangThai(string? trangThai) => trangThai switch
+    {
+        "Tr?ng" or "Trá»‘ng" or "Trống" => "Trống",
+        "CÃ³ khÃ¡ch" or "Có khách" => "Có khách",
+        "B?o trì" or "Báº£o trÃ¬" or "Bảo trì" => "Bảo trì",
+        "Ðã d?t" or "ÄÃ£ Ä‘áº·t" or "Đã đặt" => "Đã đặt",
+        _ => trangThai ?? string.Empty
+    };
 }
 
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Breadcrumb -->
             <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-                    <li class="breadcrumb-item"><a asp-action="Index">Loại Phòng</a></li>
-                    <li class="breadcrumb-item active">Chi tiết</li>
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chu</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Loai Phong</a></li>
+                    <li class="breadcrumb-item active">Chi tiet</li>
                 </ol>
             </nav>
 
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-light border-bottom">
                     <h3 class="mb-0 fw-bold text-info">
-                        <i class="bi bi-info-circle"></i> Chi Tiết Loại Phòng
+                        <i class="bi bi-info-circle"></i> Chi tiet Loai Phong
                     </h3>
                 </div>
-                
+
                 <div class="card-body p-4">
                     <dl class="row mb-4">
-                        <dt class="col-sm-3 fw-bold">Mã Loại:</dt>
-                        <dd class="col-sm-9">
-                            <span class="badge bg-primary">@Model.MaLoaiPhong</span>
-                        </dd>
+                        <dt class="col-sm-3 fw-bold">Ma Loai:</dt>
+                        <dd class="col-sm-9"><span class="badge bg-primary">@Model.MaLoaiPhong</span></dd>
 
-                        <dt class="col-sm-3 fw-bold">Tên Loại:</dt>
+                        <dt class="col-sm-3 fw-bold">Ten Loai:</dt>
                         <dd class="col-sm-9">@Model.TenLoaiPhong</dd>
 
-                        <dt class="col-sm-3 fw-bold">Mô Tả:</dt>
-                        <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.MoTa) ? "(Không có)" : Model.MoTa)</dd>
+                        <dt class="col-sm-3 fw-bold">Mo Ta:</dt>
+                        <dd class="col-sm-9">@(string.IsNullOrEmpty(Model.MoTa) ? "(Khong co)" : Model.MoTa)</dd>
 
-                        <dt class="col-sm-3 fw-bold">Khách Tối Đa:</dt>
+                        <dt class="col-sm-3 fw-bold">Khach Toi Da:</dt>
                         <dd class="col-sm-9">
-                            <span class="badge bg-success" style="font-size: 14px;">@Model.SoNguoiToiDa người</span>
+                            <span class="badge bg-success" style="font-size: 14px;">@Model.SoNguoiToiDa nguoi</span>
                         </dd>
                     </dl>
 
                     <hr />
 
-                    <!-- Danh sách phòng -->
                     <h5 class="fw-bold mb-3">
-                        <i class="bi bi-door-closed"></i> Phòng Loại Này
+                        <i class="bi bi-door-closed"></i> Phong Loai Nay
                         <span class="badge bg-info">@(Model.Phongs?.Count ?? 0)</span>
                     </h5>
-                    
+
                     @if (Model.Phongs != null && Model.Phongs.Count > 0)
                     {
                         <div class="table-responsive">
                             <table class="table table-sm table-hover">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Mã Phòng</th>
-                                        <th>Số Phòng</th>
-                                        <th>Trạng Thái</th>
+                                        <th>Ma Phong</th>
+                                        <th>So Phong</th>
+                                        <th>Trang Thai</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var phong in Model.Phongs)
                                     {
+                                        var displayTrangThai = NormalizeTrangThai(phong.TrangThai);
+                                        var badgeClass = displayTrangThai switch
+                                        {
+                                            "Trống" => "bg-success",
+                                            "Có khách" => "bg-warning",
+                                            "Bảo trì" => "bg-danger",
+                                            "Đã đặt" => "bg-info",
+                                            _ => "bg-secondary"
+                                        };
+
                                         <tr>
                                             <td class="fw-semibold">@phong.MaPhong</td>
                                             <td>@phong.SoPhong</td>
-                                            <td>
-                                                @{
-                                                    var badgeClass = phong.TrangThai switch
-                                                    {
-                                                        "Trống" => "bg-success",
-                                                        "Có khách" => "bg-warning",
-                                                        "Bảo trì" => "bg-danger",
-                                                        "Đã đặt" => "bg-info",
-                                                        _ => "bg-secondary"
-                                                    };
-                                                }
-                                                <span class="badge @badgeClass">@phong.TrangThai</span>
-                                            </td>
+                                            <td><span class="badge @badgeClass">@displayTrangThai</span></td>
                                         </tr>
                                     }
                                 </tbody>
@@ -88,28 +93,27 @@
                     else
                     {
                         <p class="text-muted text-center py-3">
-                            <i class="bi bi-inbox"></i> Chưa có phòng nào loại này
+                            <i class="bi bi-inbox"></i> Chua co phong nao loai nay
                         </p>
                     }
 
                     <hr />
 
-                    <!-- Danh sách giá -->
                     <h5 class="fw-bold mb-3">
-                        <i class="bi bi-tag"></i> Giá Phòng
+                        <i class="bi bi-tag"></i> Gia Phong
                         <span class="badge bg-info">@(Model.GiaPhongs?.Count ?? 0)</span>
                     </h5>
-                    
+
                     @if (Model.GiaPhongs != null && Model.GiaPhongs.Count > 0)
                     {
                         <div class="table-responsive">
                             <table class="table table-sm table-hover">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Mã Giá</th>
-                                        <th>Giá (VND)</th>
-                                        <th>Ngày Bắt Đầu</th>
-                                        <th>Ngày Kết Thúc</th>
+                                        <th>Ma Gia</th>
+                                        <th>Gia (VND)</th>
+                                        <th>Ngay Bat Dau</th>
+                                        <th>Ngay Ket Thuc</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -119,7 +123,7 @@
                                             <td class="fw-semibold">@gia.MaGia</td>
                                             <td class="text-end fw-bold">@gia.Gia?.ToString("N0")</td>
                                             <td>@gia.NgayBatDau?.ToString("dd/MM/yyyy")</td>
-                                            <td>@(gia.NgayKetThuc?.ToString("dd/MM/yyyy") ?? "(Không giới hạn)")</td>
+                                            <td>@(gia.NgayKetThuc?.ToString("dd/MM/yyyy") ?? "(Khong gioi han)")</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -129,19 +133,19 @@
                     else
                     {
                         <p class="text-muted text-center py-3">
-                            <i class="bi bi-inbox"></i> Chưa có giá nào được thiết lập
+                            <i class="bi bi-inbox"></i> Chua co gia nao duoc thiet lap
                         </p>
                     }
 
                     <div class="d-flex gap-3 mt-4">
                         <a asp-action="Edit" asp-route-id="@Model.MaLoaiPhong" class="btn btn-warning">
-                            <i class="bi bi-pencil"></i> Chỉnh Sửa
+                            <i class="bi bi-pencil"></i> Chinh Sua
                         </a>
                         <a asp-action="Delete" asp-route-id="@Model.MaLoaiPhong" class="btn btn-danger">
-                            <i class="bi bi-trash"></i> Xóa
+                            <i class="bi bi-trash"></i> Xoa
                         </a>
                         <a asp-action="Index" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Quay Lại
+                            <i class="bi bi-arrow-left"></i> Quay Lai
                         </a>
                     </div>
                 </div>

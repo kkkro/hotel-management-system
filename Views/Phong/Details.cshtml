@@ -1,43 +1,61 @@
-@model WebKhachSan.Models.Phong
+﻿@model WebKhachSan.Models.Phong
 
-@{    Layout = "~/Views/Shared/_DashboardLayout.cshtml";    ViewData["Title"] = "Chi Tiết Phòng";
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Chi tiet Phong";
+
+    var displayTrangThai = Model.TrangThai switch
+    {
+        "Tr?ng" or "Trá»‘ng" or "Trống" => "Trống",
+        "CÃ³ khÃ¡ch" or "Có khách" => "Có khách",
+        "B?o trì" or "Báº£o trÃ¬" or "Bảo trì" => "Bảo trì",
+        "Ðã d?t" or "ÄÃ£ Ä‘áº·t" or "Đã đặt" => "Đã đặt",
+        _ => Model.TrangThai ?? string.Empty
+    };
+
+    var badgeClass = displayTrangThai switch
+    {
+        "Trống" => "bg-success",
+        "Có khách" => "bg-warning",
+        "Bảo trì" => "bg-danger",
+        "Đã đặt" => "bg-info",
+        _ => "bg-secondary"
+    };
 }
 
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Breadcrumb -->
             <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-                    <li class="breadcrumb-item"><a asp-action="Index">Phòng</a></li>
-                    <li class="breadcrumb-item active">Chi tiết</li>
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chu</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Index">Phong</a></li>
+                    <li class="breadcrumb-item active">Chi tiet</li>
                 </ol>
             </nav>
 
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-light border-bottom">
                     <h3 class="mb-0 fw-bold text-info">
-                        <i class="bi bi-info-circle"></i> Chi Tiết Phòng
+                        <i class="bi bi-info-circle"></i> Chi tiet Phong
                     </h3>
                 </div>
-                
+
                 <div class="card-body p-4">
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <dl>
-                                <dt class="fw-bold text-muted small">Mã Phòng:</dt>
+                                <dt class="fw-bold text-muted small">Ma Phong:</dt>
                                 <dd class="mb-3">
                                     <span class="badge bg-primary">@Model.MaPhong</span>
                                 </dd>
 
-                                <dt class="fw-bold text-muted small">Số Phòng:</dt>
+                                <dt class="fw-bold text-muted small">So Phong:</dt>
                                 <dd class="mb-3 fs-5 fw-bold">@Model.SoPhong</dd>
 
-                                <dt class="fw-bold text-muted small">Loại Phòng:</dt>
+                                <dt class="fw-bold text-muted small">Loai Phong:</dt>
                                 <dd class="mb-3">
-                                    <a asp-controller="LoaiPhong" asp-action="Details" 
-                                       asp-route-id="@Model.MaLoaiPhong" class="link">
+                                    <a asp-controller="LoaiPhong" asp-action="Details" asp-route-id="@Model.MaLoaiPhong" class="link">
                                         @Model.MaLoaiPhongNavigation?.TenLoaiPhong
                                     </a>
                                 </dd>
@@ -45,43 +63,32 @@
                         </div>
                         <div class="col-md-6">
                             <dl>
-                                <dt class="fw-bold text-muted small">Trạng Thái:</dt>
+                                <dt class="fw-bold text-muted small">Trang Thai:</dt>
                                 <dd class="mb-3">
-                                    @{
-                                        var badgeClass = Model.TrangThai switch
-                                        {
-                                            "Trống" => "bg-success",
-                                            "Có khách" => "bg-warning",
-                                            "Bảo trì" => "bg-danger",
-                                            "Đã đặt" => "bg-info",
-                                            _ => "bg-secondary"
-                                        };
-                                    }
-                                    <span class="badge @badgeClass" style="font-size: 14px;">@Model.TrangThai</span>
+                                    <span class="badge @badgeClass" style="font-size: 14px;">@displayTrangThai</span>
                                 </dd>
 
-                                <dt class="fw-bold text-muted small">Sức Chứa:</dt>
+                                <dt class="fw-bold text-muted small">Suc Chua:</dt>
                                 <dd class="mb-3">
                                     <span class="badge bg-success" style="font-size: 14px;">
-                                        @Model.MaLoaiPhongNavigation?.SoNguoiToiDa người
+                                        @Model.MaLoaiPhongNavigation?.SoNguoiToiDa nguoi
                                     </span>
                                 </dd>
 
-                                <dt class="fw-bold text-muted small">Giá Cơ Bản:</dt>
+                                <dt class="fw-bold text-muted small">Gia Co Ban:</dt>
                                 <dd class="mb-3">
                                     @{
                                         var giaHienTai = Model.MaLoaiPhongNavigation?.GiaPhongs
-                                            ?.Where(g => g.NgayBatDau <= DateTime.Now && 
-                                                        (g.NgayKetThuc == null || g.NgayKetThuc >= DateTime.Now))
+                                            ?.Where(g => g.NgayBatDau <= DateTime.Now && (g.NgayKetThuc == null || g.NgayKetThuc >= DateTime.Now))
                                             ?.FirstOrDefault();
                                     }
                                     @if (giaHienTai != null)
                                     {
-                                        <span class="fw-bold text-success">@giaHienTai.Gia?.ToString("N0") VND/đêm</span>
+                                        <span class="fw-bold text-success">@giaHienTai.Gia?.ToString("N0") VND/dem</span>
                                     }
                                     else
                                     {
-                                        <span class="text-muted">(Chưa cập nhật giá)</span>
+                                        <span class="text-muted">(Chua cap nhat gia)</span>
                                     }
                                 </dd>
                             </dl>
@@ -90,25 +97,24 @@
 
                     <hr />
 
-                    <!-- Lịch sử thuê phòng -->
                     <h5 class="fw-bold mb-3">
-                        <i class="bi bi-calendar-event"></i> Lịch Sử Thuê Phòng
+                        <i class="bi bi-calendar-event"></i> Lich Su Thue Phong
                         <span class="badge bg-info">@(Model.CtthuePhongs?.Count ?? 0)</span>
                     </h5>
-                    
+
                     @if (Model.CtthuePhongs != null && Model.CtthuePhongs.Count > 0)
                     {
                         <div class="table-responsive">
                             <table class="table table-sm table-hover">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Mã Thuê Phòng</th>
-                                        <th>Khách Hàng</th>
-                                        <th>Ngày Nhận</th>
-                                        <th>Ngày Trả</th>
-                                        <th class="text-center">Số Đêm</th>
-                                        <th class="text-end">Giá/Đêm</th>
-                                        <th class="text-center">Trạng Thái</th>
+                                        <th>Ma Thue Phong</th>
+                                        <th>Khach Hang</th>
+                                        <th>Ngay Nhan</th>
+                                        <th>Ngay Tra</th>
+                                        <th class="text-center">So Dem</th>
+                                        <th class="text-end">Gia/Dem</th>
+                                        <th class="text-center">Trang Thai</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -116,35 +122,31 @@
                                     {
                                         var ngayNhan = rentDetail.MaThuePhongNavigation?.NgayNhan;
                                         var ngayTra = rentDetail.MaThuePhongNavigation?.NgayTra;
-                                        var soDem = (ngayTra.HasValue && ngayNhan.HasValue) 
-                                            ? (int)((ngayTra.Value - ngayNhan.Value).TotalDays) 
+                                        var soDem = (ngayTra.HasValue && ngayNhan.HasValue)
+                                            ? (int)((ngayTra.Value - ngayNhan.Value).TotalDays)
                                             : 0;
-                                        var daDat = ngayTra.HasValue;
-                                        
+                                        var daTra = ngayTra.HasValue;
+
                                         <tr>
-                                            <td class="fw-semibold">
-                                                @rentDetail.MaThuePhong
-                                            </td>
-                                            <td>
-                                                @(rentDetail.MaThuePhongNavigation?.MaKhachHangNavigation?.TenKhachHang ?? "(Không có)")
-                                            </td>
+                                            <td class="fw-semibold">@rentDetail.MaThuePhong</td>
+                                            <td>@(rentDetail.MaThuePhongNavigation?.MaKhachHangNavigation?.TenKhachHang ?? "(Khong co)")</td>
                                             <td>@ngayNhan?.ToString("dd/MM/yyyy HH:mm")</td>
                                             <td>
-                                                @if (daDat)
+                                                @if (daTra)
                                                 {
                                                     @ngayTra.Value.ToString("dd/MM/yyyy HH:mm")
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-warning text-dark">Còn lưu trú</span>
+                                                    <span class="badge bg-warning text-dark">Con luu tru</span>
                                                 }
                                             </td>
                                             <td class="text-center">
                                                 @if (soDem > 0)
                                                 {
-                                                    <span class="badge bg-secondary">@soDem đêm</span>
+                                                    <span class="badge bg-secondary">@soDem dem</span>
                                                 }
-                                                else if (!daDat)
+                                                else if (!daTra)
                                                 {
                                                     <span class="text-muted">-</span>
                                                 }
@@ -157,17 +159,17 @@
                                                 }
                                                 else
                                                 {
-                                                    <span class="text-muted small">(Không có)</span>
+                                                    <span class="text-muted small">(Khong co)</span>
                                                 }
                                             </td>
                                             <td class="text-center">
-                                                @if (daDat)
+                                                @if (daTra)
                                                 {
-                                                    <span class="badge bg-success">Đã trả</span>
+                                                    <span class="badge bg-success">Da tra</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-info">Đang lưu trú</span>
+                                                    <span class="badge bg-info">Dang luu tru</span>
                                                 }
                                             </td>
                                         </tr>
@@ -179,19 +181,19 @@
                     else
                     {
                         <p class="text-muted text-center py-3">
-                            <i class="bi bi-inbox"></i> Chưa có lịch sử thuê phòng
+                            <i class="bi bi-inbox"></i> Chua co lich su thue phong
                         </p>
                     }
 
                     <div class="d-flex gap-3 mt-4">
                         <a asp-action="Edit" asp-route-id="@Model.MaPhong" class="btn btn-warning">
-                            <i class="bi bi-pencil"></i> Chỉnh Sửa
+                            <i class="bi bi-pencil"></i> Chinh Sua
                         </a>
                         <a asp-action="Delete" asp-route-id="@Model.MaPhong" class="btn btn-danger">
-                            <i class="bi bi-trash"></i> Xóa
+                            <i class="bi bi-trash"></i> Xoa
                         </a>
                         <a asp-action="Index" class="btn btn-secondary">
-                            <i class="bi bi-arrow-left"></i> Quay Lại
+                            <i class="bi bi-arrow-left"></i> Quay Lai
                         </a>
                     </div>
                 </div>

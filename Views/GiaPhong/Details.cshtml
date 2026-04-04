@@ -1,0 +1,113 @@
+@model GiaPhongDetailsViewModel
+
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Chi tiet Gia Phong";
+    var giaPhong = Model.GiaPhong;
+    var isActive = giaPhong.NgayBatDau <= DateTime.Today &&
+        (giaPhong.NgayKetThuc == null || giaPhong.NgayKetThuc >= DateTime.Today);
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chu</a></li>
+            <li class="breadcrumb-item"><a asp-controller="GiaPhong" asp-action="Index">Gia phong</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@giaPhong.MaGia</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Chi tiet Gia Phong</h2>
+            <p class="text-muted mb-0">Theo doi thong tin bang gia va cac phong dang ap dung.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@giaPhong.MaGia" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Chinh sua
+            </a>
+            <a asp-action="Index" asp-route-maLoaiPhong="@giaPhong.MaLoaiPhong" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lai
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-3">Thong tin bang gia</h5>
+
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Ma gia</dt>
+                        <dd class="col-sm-7">@giaPhong.MaGia</dd>
+
+                        <dt class="col-sm-5">Loai phong</dt>
+                        <dd class="col-sm-7">
+                            <div>@giaPhong.MaLoaiPhongNavigation?.TenLoaiPhong</div>
+                            <small class="text-muted">@giaPhong.MaLoaiPhong</small>
+                        </dd>
+
+                        <dt class="col-sm-5">Gia</dt>
+                        <dd class="col-sm-7 fw-bold text-primary">@giaPhong.Gia?.ToString("N0") VND</dd>
+
+                        <dt class="col-sm-5">Bat dau</dt>
+                        <dd class="col-sm-7">@giaPhong.NgayBatDau?.ToString("dd/MM/yyyy")</dd>
+
+                        <dt class="col-sm-5">Ket thuc</dt>
+                        <dd class="col-sm-7">@(giaPhong.NgayKetThuc?.ToString("dd/MM/yyyy") ?? "Khong gioi han")</dd>
+
+                        <dt class="col-sm-5">Trang thai</dt>
+                        <dd class="col-sm-7">
+                            <span class="badge @(isActive ? "bg-success" : "bg-secondary")">
+                                @(isActive ? "Dang ap dung" : "Khong hieu luc")
+                            </span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold mb-0">Phong dang ap dung</h5>
+                        <span class="badge bg-primary">@Model.PhongsApDung.Count phong</span>
+                    </div>
+
+                    @if (Model.PhongsApDung.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>So phong</th>
+                                        <th>Ma phong</th>
+                                        <th>Trang thai</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var phong in Model.PhongsApDung)
+                                    {
+                                        <tr>
+                                            <td class="fw-semibold">@phong.SoPhong</td>
+                                            <td>@phong.MaPhong</td>
+                                            <td>@phong.TrangThai</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">Chua co phong nao thuoc loai phong nay.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">

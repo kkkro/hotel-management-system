@@ -67,7 +67,6 @@ D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\bin\Debug\net6.0\appsettings.D
 D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\bin\Debug\net6.0\appsettings.json
 D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\bin\Debug\net6.0\WebKhachSan.staticwebassets.runtime.json
 D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\bin\Debug\net6.0\WebKhachSan.staticwebassets.endpoints.json
-D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\bin\Debug\net6.0\WebKhachSan.exe
 D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\bin\Debug\net6.0\WebKhachSan.deps.json
 D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\bin\Debug\net6.0\WebKhachSan.runtimeconfig.json
 D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\bin\Debug\net6.0\WebKhachSan.dll
@@ -130,3 +129,5 @@ D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\obj\Debug\net6.0\refint\WebKha
 D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\obj\Debug\net6.0\WebKhachSan.pdb
 D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\obj\Debug\net6.0\WebKhachSan.genruntimeconfig.cache
 D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\obj\Debug\net6.0\ref\WebKhachSan.dll
+D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\obj\Debug\net6.0\WebKhachSan.sourcelink.json
+D:\Nam4_HK2\TTTN_thayTung\WebKhachSan\WebKhachSan\bin\Debug\net6.0\WebKhachSan.exe

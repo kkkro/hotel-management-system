@@ -1,0 +1,80 @@
+﻿@model IEnumerable<WebKhachSan.Models.ThuePhong>
+
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Thuê phòng";
+}
+
+<div class="container-fluid py-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Thành công!</strong> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1 fw-bold">Phiếu thuê phòng</h2>
+            <p class="text-muted mb-0">Quản lý danh sách khách thuê offline tại quầy lễ tân.</p>
+        </div>
+        <button type="button" class="btn btn-primary js-open-available-rooms">
+            <i class="bi bi-plus-circle"></i> Thuê phòng mới
+        </button>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Mã thuê</th>
+                        <th>Khách hàng</th>
+                        <th>Phòng</th>
+                        <th>Ngày nhận</th>
+                        <th>Ngày trả</th>
+                        <th class="text-end">Giá thuê</th>
+                        <th class="text-center">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            var chiTiet = item.CtthuePhongs.FirstOrDefault();
+                            var trangThai = item.NgayTra.HasValue ? "Đã trả" : "Đang thuê";
+                            <tr>
+                                <td class="ps-4 fw-semibold text-primary">@item.MaThuePhong</td>
+                                <td>
+                                    <div class="fw-semibold">@item.MaKhachHangNavigation?.TenKhachHang</div>
+                                    <small class="text-muted">@item.MaKhachHangNavigation?.DienThoai</small>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">@chiTiet?.MaPhongNavigation?.SoPhong</div>
+                                    <small class="text-muted">@chiTiet?.MaPhongNavigation?.MaLoaiPhongNavigation?.TenLoaiPhong</small>
+                                </td>
+                                <td>@item.NgayNhan?.ToString("dd/MM/yyyy")</td>
+                                <td>@(item.NgayTra?.ToString("dd/MM/yyyy") ?? "Chưa trả")</td>
+                                <td class="text-end">@chiTiet?.GiaThueTaiThoiDiem?.ToString("N0")</td>
+                                <td class="text-center">
+                                    <span class="badge @(item.NgayTra.HasValue ? "bg-secondary" : "bg-success")">@trangThai</span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                                <p class="mt-3 mb-0">Chưa có phiếu thuê phòng nào.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

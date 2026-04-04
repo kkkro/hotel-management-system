@@ -1,7 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebKhachSan.Models;
+using WebKhachSan.ViewModels;
 
 namespace WebKhachSan.Controllers
 {
@@ -17,10 +18,9 @@ namespace WebKhachSan.Controllers
             _logger = logger;
         }
 
-        // GET: GiaPhong
         public async Task<IActionResult> Index(string? maLoaiPhong)
         {
-            _logger.LogInformation("Người dùng {0} xem danh sách giá phòng", User.Identity?.Name);
+            _logger.LogInformation("Nguoi dung {User} xem danh sach gia phong", User.Identity?.Name);
 
             IQueryable<GiaPhong> giaPhongs = _context.GiaPhongs
                 .Include(g => g.MaLoaiPhongNavigation)
@@ -36,77 +36,12 @@ namespace WebKhachSan.Controllers
                     .FirstOrDefaultAsync();
             }
 
-            var result = await giaPhongs.ToListAsync();
-            return View(result);
+            return View(await giaPhongs.ToListAsync());
         }
 
-        // GET: GiaPhong/Create
-        public async Task<IActionResult> Create(string? maLoaiPhong)
+        public async Task<IActionResult> Details(string id)
         {
-            ViewBag.LoaiPhongs = await _context.LoaiPhongs.ToListAsync();
-            
-            if (!string.IsNullOrEmpty(maLoaiPhong))
-            {
-                ViewBag.MaLoaiPhong = maLoaiPhong;
-            }
-            
-            return View();
-        }
-
-        // POST: GiaPhong/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaGia,MaLoaiPhong,Gia,NgayBatDau,NgayKetThuc")] GiaPhong giaPhong)
-        {
-            if (ModelState.IsValid)
-            {
-                // Kiểm tra mã giá đã tồn tại
-                if (await _context.GiaPhongs.AnyAsync(g => g.MaGia == giaPhong.MaGia))
-                {
-                    ModelState.AddModelError("MaGia", "Mã giá đã tồn tại");
-                    ViewBag.LoaiPhongs = await _context.LoaiPhongs.ToListAsync();
-                    return View(giaPhong);
-                }
-
-                // Kiểm tra loại phòng tồn tại
-                if (!await _context.LoaiPhongs.AnyAsync(l => l.MaLoaiPhong == giaPhong.MaLoaiPhong))
-                {
-                    ModelState.AddModelError("MaLoaiPhong", "Loại phòng không tồn tại");
-                    ViewBag.LoaiPhongs = await _context.LoaiPhongs.ToListAsync();
-                    return View(giaPhong);
-                }
-
-                // Kiểm tra ngày bắt đầu <= ngày kết thúc
-                if (giaPhong.NgayKetThuc.HasValue && giaPhong.NgayBatDau > giaPhong.NgayKetThuc)
-                {
-                    ModelState.AddModelError("NgayKetThuc", "Ngày kết thúc phải sau ngày bắt đầu");
-                    ViewBag.LoaiPhongs = await _context.LoaiPhongs.ToListAsync();
-                    return View(giaPhong);
-                }
-
-                _context.Add(giaPhong);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("Người dùng {0} thêm giá phòng mới: {1} - {2} VND/đêm",
-                    User.Identity?.Name, giaPhong.MaGia, giaPhong.Gia);
-
-                TempData["Success"] = "Thêm giá phòng thành công";
-                
-                if (!string.IsNullOrEmpty(giaPhong.MaLoaiPhong))
-                {
-                    return RedirectToAction("Index", new { maLoaiPhong = giaPhong.MaLoaiPhong });
-                }
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewBag.LoaiPhongs = await _context.LoaiPhongs.ToListAsync();
-            return View(giaPhong);
-        }
-
-        // GET: GiaPhong/Edit/5
-        public async Task<IActionResult> Edit(string id)
-        {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return NotFound();
             }
@@ -114,17 +49,139 @@ namespace WebKhachSan.Controllers
             var giaPhong = await _context.GiaPhongs
                 .Include(g => g.MaLoaiPhongNavigation)
                 .FirstOrDefaultAsync(g => g.MaGia == id);
-            
+
             if (giaPhong == null)
             {
                 return NotFound();
             }
 
-            ViewBag.LoaiPhongs = await _context.LoaiPhongs.ToListAsync();
+            var phongsApDung = await _context.Phongs
+                .Include(p => p.MaLoaiPhongNavigation)
+                .Where(p => p.MaLoaiPhong == giaPhong.MaLoaiPhong)
+                .OrderBy(p => p.SoPhong)
+                .ToListAsync();
+
+            return View(new GiaPhongDetailsViewModel
+            {
+                GiaPhong = giaPhong,
+                PhongsApDung = phongsApDung
+            });
+        }
+
+        public async Task<IActionResult> Create(string? maLoaiPhong)
+        {
+            await PopulateLoaiPhongAsync(maLoaiPhong);
+            return View(new GiaPhong { MaLoaiPhong = maLoaiPhong });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("MaGia,MaLoaiPhong,Gia,NgayBatDau,NgayKetThuc")] GiaPhong giaPhong)
+        {
+            await ValidateGiaPhongAsync(giaPhong);
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateLoaiPhongAsync(giaPhong.MaLoaiPhong);
+                return View(giaPhong);
+            }
+
+            _context.GiaPhongs.Add(giaPhong);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Nguoi dung {User} tao gia phong {MaGia} cho loai phong {MaLoaiPhong}",
+                User.Identity?.Name, giaPhong.MaGia, giaPhong.MaLoaiPhong);
+
+            TempData["Success"] = "Them gia phong thanh cong.";
+            return RedirectToAction(nameof(Index), new { maLoaiPhong = giaPhong.MaLoaiPhong });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateBulk([FromQuery] string[] selectedLoaiPhongIds)
+        {
+            if (selectedLoaiPhongIds == null || selectedLoaiPhongIds.Length == 0)
+            {
+                TempData["Error"] = "Hay chon it nhat mot loai phong de gan gia.";
+                return RedirectToAction("Index", "LoaiPhong");
+            }
+
+            var model = await BuildBulkCreateViewModelAsync(selectedLoaiPhongIds);
+            if (!model.LoaiPhongApDung.Any())
+            {
+                TempData["Error"] = "Khong tim thay loai phong da chon.";
+                return RedirectToAction("Index", "LoaiPhong");
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateBulk(GiaPhongBulkCreateViewModel model)
+        {
+            model.LoaiPhongApDung = await GetSelectedLoaiPhongItemsAsync(model.SelectedLoaiPhongIds);
+
+            if (!model.LoaiPhongApDung.Any())
+            {
+                ModelState.AddModelError(string.Empty, "Khong tim thay loai phong da chon.");
+            }
+
+            ValidateGiaPhongInput(model.Gia, model.NgayBatDau, model.NgayKetThuc);
+
+            foreach (var loaiPhong in model.LoaiPhongApDung)
+            {
+                if (await HasOverlappingPriceRangeAsync(loaiPhong.MaLoaiPhong, model.NgayBatDau, model.NgayKetThuc))
+                {
+                    ModelState.AddModelError(string.Empty,
+                        $"Loai phong '{loaiPhong.TenLoaiPhong ?? loaiPhong.MaLoaiPhong}' da co bang gia trung thoi gian ap dung.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var nextPriceNumber = await GetNextMaGiaNumberAsync();
+            var giaPhongsMoi = model.LoaiPhongApDung.Select(loaiPhong => new GiaPhong
+            {
+                MaGia = $"G{nextPriceNumber++:D3}",
+                MaLoaiPhong = loaiPhong.MaLoaiPhong,
+                Gia = model.Gia,
+                NgayBatDau = model.NgayBatDau,
+                NgayKetThuc = model.NgayKetThuc
+            }).ToList();
+
+            _context.GiaPhongs.AddRange(giaPhongsMoi);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Nguoi dung {User} gan gia hang loat cho {TypeCount} loai phong",
+                User.Identity?.Name, model.LoaiPhongApDung.Count);
+
+            TempData["Success"] = $"Da tao {giaPhongsMoi.Count} bang gia cho cac loai phong duoc chon.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> Edit(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return NotFound();
+            }
+
+            var giaPhong = await _context.GiaPhongs
+                .Include(g => g.MaLoaiPhongNavigation)
+                .FirstOrDefaultAsync(g => g.MaGia == id);
+
+            if (giaPhong == null)
+            {
+                return NotFound();
+            }
+
+            await PopulateLoaiPhongAsync(giaPhong.MaLoaiPhong);
             return View(giaPhong);
         }
 
-        // POST: GiaPhong/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, [Bind("MaGia,MaLoaiPhong,Gia,NgayBatDau,NgayKetThuc")] GiaPhong giaPhong)
@@ -134,55 +191,42 @@ namespace WebKhachSan.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            await ValidateGiaPhongAsync(giaPhong, giaPhong.MaGia);
+
+            if (!ModelState.IsValid)
             {
-                // Kiểm tra ngày bắt đầu <= ngày kết thúc
-                if (giaPhong.NgayKetThuc.HasValue && giaPhong.NgayBatDau > giaPhong.NgayKetThuc)
-                {
-                    ModelState.AddModelError("NgayKetThuc", "Ngày kết thúc phải sau ngày bắt đầu");
-                    ViewBag.LoaiPhongs = await _context.LoaiPhongs.ToListAsync();
-                    return View(giaPhong);
-                }
-
-                try
-                {
-                    _context.Update(giaPhong);
-                    await _context.SaveChangesAsync();
-
-                    _logger.LogInformation("Người dùng {0} chỉnh sửa giá phòng: {1}",
-                        User.Identity?.Name, id);
-
-                    TempData["Success"] = "Cập nhật giá phòng thành công";
-                    return RedirectToAction(nameof(Index), new { maLoaiPhong = giaPhong.MaLoaiPhong });
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!await GiaPhongExists(giaPhong.MaGia))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await PopulateLoaiPhongAsync(giaPhong.MaLoaiPhong);
+                return View(giaPhong);
             }
 
-            ViewBag.LoaiPhongs = await _context.LoaiPhongs.ToListAsync();
-            return View(giaPhong);
+            try
+            {
+                _context.Update(giaPhong);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Cap nhat gia phong thanh cong.";
+                return RedirectToAction(nameof(Index), new { maLoaiPhong = giaPhong.MaLoaiPhong });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await GiaPhongExists(giaPhong.MaGia))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
         }
 
-        // GET: GiaPhong/Delete/5
         public async Task<IActionResult> Delete(string id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return NotFound();
             }
 
             var giaPhong = await _context.GiaPhongs
                 .Include(g => g.MaLoaiPhongNavigation)
-                .FirstOrDefaultAsync(m => m.MaGia == id);
+                .FirstOrDefaultAsync(g => g.MaGia == id);
 
             if (giaPhong == null)
             {
@@ -192,7 +236,6 @@ namespace WebKhachSan.Controllers
             return View(giaPhong);
         }
 
-        // POST: GiaPhong/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -207,11 +250,151 @@ namespace WebKhachSan.Controllers
             _context.GiaPhongs.Remove(giaPhong);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Người dùng {0} xóa giá phòng: {1}",
-                User.Identity?.Name, id);
+            TempData["Success"] = "Xoa gia phong thanh cong.";
+            return RedirectToAction(nameof(Index), new { maLoaiPhong });
+        }
 
-            TempData["Success"] = "Xóa giá phòng thành công";
-            return RedirectToAction(nameof(Index), new { maLoaiPhong = maLoaiPhong });
+        private async Task PopulateLoaiPhongAsync(string? maLoaiPhong = null)
+        {
+            ViewBag.LoaiPhongs = await _context.LoaiPhongs.OrderBy(l => l.TenLoaiPhong).ToListAsync();
+            ViewBag.MaLoaiPhong = maLoaiPhong;
+        }
+
+        private void ValidateGiaPhongInput(double? gia, DateTime? ngayBatDau, DateTime? ngayKetThuc)
+        {
+            if (!gia.HasValue || gia.Value <= 0)
+            {
+                ModelState.AddModelError("Gia", "Gia phong phai lon hon 0.");
+            }
+
+            if (!ngayBatDau.HasValue)
+            {
+                ModelState.AddModelError("NgayBatDau", "Ngay bat dau khong duoc de trong.");
+            }
+
+            if (ngayBatDau.HasValue && ngayKetThuc.HasValue && ngayBatDau.Value.Date > ngayKetThuc.Value.Date)
+            {
+                ModelState.AddModelError("NgayKetThuc", "Ngay ket thuc phai sau hoac bang ngay bat dau.");
+            }
+        }
+
+        private async Task ValidateGiaPhongAsync(GiaPhong giaPhong, string? excludeMaGia = null)
+        {
+            ValidateGiaPhongInput(giaPhong.Gia, giaPhong.NgayBatDau, giaPhong.NgayKetThuc);
+
+            if (string.IsNullOrWhiteSpace(giaPhong.MaGia))
+            {
+                ModelState.AddModelError("MaGia", "Ma gia khong duoc de trong.");
+            }
+            else if (excludeMaGia == null && await _context.GiaPhongs.AnyAsync(g => g.MaGia == giaPhong.MaGia))
+            {
+                ModelState.AddModelError("MaGia", "Ma gia da ton tai.");
+            }
+
+            if (string.IsNullOrWhiteSpace(giaPhong.MaLoaiPhong))
+            {
+                ModelState.AddModelError("MaLoaiPhong", "Loai phong khong duoc de trong.");
+            }
+            else if (!await _context.LoaiPhongs.AnyAsync(l => l.MaLoaiPhong == giaPhong.MaLoaiPhong))
+            {
+                ModelState.AddModelError("MaLoaiPhong", "Loai phong khong ton tai.");
+            }
+
+            if (!HasModelError("MaLoaiPhong")
+                && !HasModelError("NgayBatDau")
+                && !HasModelError("NgayKetThuc")
+                && await HasOverlappingPriceRangeAsync(giaPhong.MaLoaiPhong!, giaPhong.NgayBatDau, giaPhong.NgayKetThuc, excludeMaGia))
+            {
+                ModelState.AddModelError(string.Empty, "Khoang thoi gian nay bi trung voi bang gia khac cua loai phong.");
+            }
+        }
+
+        private async Task<bool> HasOverlappingPriceRangeAsync(string maLoaiPhong, DateTime? ngayBatDau, DateTime? ngayKetThuc, string? excludeMaGia = null)
+        {
+            if (!ngayBatDau.HasValue)
+            {
+                return false;
+            }
+
+            var start = ngayBatDau.Value.Date;
+            var end = (ngayKetThuc ?? DateTime.MaxValue).Date;
+
+            return await _context.GiaPhongs
+                .Where(g => g.MaLoaiPhong == maLoaiPhong && g.MaGia != excludeMaGia)
+                .AnyAsync(g =>
+                    g.NgayBatDau.HasValue &&
+                    start <= (g.NgayKetThuc ?? DateTime.MaxValue).Date &&
+                    g.NgayBatDau.Value.Date <= end);
+        }
+
+        private async Task<List<LoaiPhongBulkSelectionItemViewModel>> GetSelectedLoaiPhongItemsAsync(IEnumerable<string> selectedLoaiPhongIds)
+        {
+            var normalizedIds = selectedLoaiPhongIds
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Select(id => id.Trim())
+                .Distinct()
+                .ToList();
+
+            if (!normalizedIds.Any())
+            {
+                return new List<LoaiPhongBulkSelectionItemViewModel>();
+            }
+
+            var loaiPhongs = await _context.LoaiPhongs
+                .Include(l => l.Phongs)
+                .Include(l => l.GiaPhongs)
+                .Where(l => normalizedIds.Contains(l.MaLoaiPhong))
+                .OrderBy(l => l.TenLoaiPhong)
+                .ToListAsync();
+
+            return loaiPhongs.Select(l => new LoaiPhongBulkSelectionItemViewModel
+            {
+                MaLoaiPhong = l.MaLoaiPhong,
+                TenLoaiPhong = l.TenLoaiPhong,
+                SoLuongPhong = l.Phongs.Count,
+                GiaHienTai = l.GiaPhongs
+                    .Where(g => g.NgayBatDau <= DateTime.Now && (g.NgayKetThuc == null || g.NgayKetThuc >= DateTime.Now))
+                    .OrderByDescending(g => g.NgayBatDau)
+                    .Select(g => g.Gia)
+                    .FirstOrDefault()
+            }).ToList();
+        }
+
+        private async Task<GiaPhongBulkCreateViewModel> BuildBulkCreateViewModelAsync(IEnumerable<string> selectedLoaiPhongIds)
+        {
+            var loaiPhongApDung = await GetSelectedLoaiPhongItemsAsync(selectedLoaiPhongIds);
+
+            return new GiaPhongBulkCreateViewModel
+            {
+                SelectedLoaiPhongIds = loaiPhongApDung.Select(l => l.MaLoaiPhong).ToList(),
+                LoaiPhongApDung = loaiPhongApDung,
+                NgayBatDau = DateTime.Today
+            };
+        }
+
+        private bool HasModelError(string key)
+        {
+            return ViewData.ModelState.TryGetValue(key, out var entry) && entry.Errors.Count > 0;
+        }
+
+        private async Task<int> GetNextMaGiaNumberAsync()
+        {
+            var existingIds = await _context.GiaPhongs.Select(g => g.MaGia).ToListAsync();
+            var maxNumber = existingIds
+                .Select(id =>
+                {
+                    if (string.IsNullOrWhiteSpace(id))
+                    {
+                        return 0;
+                    }
+
+                    var digits = new string(id.Where(char.IsDigit).ToArray());
+                    return int.TryParse(digits, out var number) ? number : 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max();
+
+            return maxNumber + 1;
         }
 
         private async Task<bool> GiaPhongExists(string id)

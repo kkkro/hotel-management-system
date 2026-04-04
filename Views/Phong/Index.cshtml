@@ -1,16 +1,24 @@
-@model IEnumerable<WebKhachSan.Models.Phong>
+﻿@model IEnumerable<WebKhachSan.Models.Phong>
 
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
-    ViewData["Title"] = "Quản lý Phòng";
+    ViewData["Title"] = "Quan ly Phong";
+
+    string NormalizeTrangThai(string? trangThai) => trangThai switch
+    {
+        "Tr?ng" or "Trá»‘ng" or "Trống" => "Trống",
+        "CÃ³ khÃ¡ch" or "Có khách" => "Có khách",
+        "B?o trì" or "Báº£o trÃ¬" or "Bảo trì" => "Bảo trì",
+        "Ðã d?t" or "ÄÃ£ Ä‘áº·t" or "Đã đặt" => "Đã đặt",
+        _ => trangThai ?? string.Empty
+    };
 }
 
 <div class="container-fluid py-4">
-    <!-- Alert thông báo -->
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <strong>Thành công!</strong> @TempData["Success"]
+            <strong>Thanh cong!</strong> @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
@@ -18,60 +26,62 @@
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Lỗi!</strong> @TempData["Error"]
+            <strong>Loi!</strong> @TempData["Error"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-            <h2 class="mb-1 fw-bold">Danh Sách Phòng</h2>
-            <p class="text-muted">Quản lý các đơn vị vật lý riêng lẻ và trạng thái thời gian thực của chúng.</p>
+            <h2 class="mb-1 fw-bold">Danh Sach Phong</h2>
+            <p class="text-muted mb-0">Quan ly danh sach phong va theo doi loai phong, trang thai su dung.</p>
         </div>
-        <a asp-action="Create" class="btn btn-primary btn-lg">
-            <i class="bi bi-plus-circle"></i> Thêm phòng mới
-        </a>
+        <div class="d-flex gap-2">
+            <a asp-controller="GiaPhong" asp-action="Index" class="btn btn-outline-primary">
+                <i class="bi bi-cash-stack"></i> Xem gia phong
+            </a>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Them phong moi
+            </a>
+        </div>
     </div>
 
-    <!-- Bộ lọc trạng thái -->
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
-            <div class="btn-group" role="group">
+            <div class="btn-group flex-wrap" role="group">
                 <a asp-action="Index" class="btn btn-outline-secondary @(ViewBag.CurrentFilter == null ? "active" : "")">
-                    Tất cả phòng <span class="badge bg-secondary ms-1">@Model.Count()</span>
+                    Tat ca phong <span class="badge bg-secondary ms-1">@Model.Count()</span>
                 </a>
                 @foreach (var status in ViewBag.TrangThaiList)
                 {
                     var count = Model.Count(p => p.TrangThai == status);
-                    <a asp-action="Index" asp-route-trangThai="@status" 
-                       class="btn btn-outline-secondary @(ViewBag.CurrentFilter == status ? "active" : "")">
-                        @status <span class="badge bg-secondary ms-1">@count</span>
+                    <a asp-action="Index" asp-route-trangThai="@status" class="btn btn-outline-secondary @(ViewBag.CurrentFilter == status ? "active" : "")">
+                        @NormalizeTrangThai(status) <span class="badge bg-secondary ms-1">@count</span>
                     </a>
                 }
             </div>
         </div>
     </div>
 
-    <!-- Bảng danh sách -->
     <div class="card shadow-sm border-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4 fw-bold text-uppercase text-muted small">Số Phòng</th>
-                        <th class="fw-bold text-uppercase text-muted small">Loại</th>
-                        <th class="text-center fw-bold text-uppercase text-muted small">Trạng Thái</th>
-                        <th class="fw-bold text-uppercase text-muted small">Khách Tối Đa</th>
-                        <th class="text-center fw-bold text-uppercase text-muted small">Thao Tác</th>
+                        <th class="ps-4 fw-bold text-uppercase text-muted small">So Phong</th>
+                        <th class="fw-bold text-uppercase text-muted small">Loai</th>
+                        <th class="text-center fw-bold text-uppercase text-muted small">Trang Thai</th>
+                        <th class="fw-bold text-uppercase text-muted small">Khach Toi Da</th>
+                        <th class="text-center fw-bold text-uppercase text-muted small">Thao Tac</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model != null && Model.Count() > 0)
+                    @if (Model.Any())
                     {
                         @foreach (var item in Model)
                         {
-                            var badgeClass = item.TrangThai switch
+                            var displayTrangThai = NormalizeTrangThai(item.TrangThai);
+                            var badgeClass = displayTrangThai switch
                             {
                                 "Trống" => "bg-success",
                                 "Có khách" => "bg-warning",
@@ -83,23 +93,24 @@
                             <tr>
                                 <td class="ps-4 fw-semibold">@item.SoPhong</td>
                                 <td>
-                                    <span class="text-muted small">@item.MaLoaiPhongNavigation?.TenLoaiPhong</span>
+                                    <div class="fw-semibold">@item.MaLoaiPhongNavigation?.TenLoaiPhong</div>
+                                    <small class="text-muted">@item.MaLoaiPhong</small>
                                 </td>
                                 <td class="text-center">
-                                    <span class="badge @badgeClass">@item.TrangThai</span>
+                                    <span class="badge @badgeClass">@displayTrangThai</span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-light text-dark">@item.MaLoaiPhongNavigation?.SoNguoiToiDa người</span>
+                                    <span class="badge bg-light text-dark">@item.MaLoaiPhongNavigation?.SoNguoiToiDa nguoi</span>
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a asp-action="Details" asp-route-id="@item.MaPhong" class="btn btn-outline-primary" title="Xem chi tiết">
+                                        <a asp-action="Details" asp-route-id="@item.MaPhong" class="btn btn-outline-primary" title="Xem chi tiet">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a asp-action="Edit" asp-route-id="@item.MaPhong" class="btn btn-outline-warning" title="Chỉnh sửa">
+                                        <a asp-action="Edit" asp-route-id="@item.MaPhong" class="btn btn-outline-warning" title="Chinh sua">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <a asp-action="Delete" asp-route-id="@item.MaPhong" class="btn btn-outline-danger" title="Xóa">
+                                        <a asp-action="Delete" asp-route-id="@item.MaPhong" class="btn btn-outline-danger" title="Xoa">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     </div>
@@ -112,7 +123,7 @@
                         <tr>
                             <td colspan="5" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                                <p class="mt-3">Chưa có phòng nào</p>
+                                <p class="mt-3 mb-0">Chua co phong nao.</p>
                             </td>
                         </tr>
                     }

@@ -37,10 +37,17 @@ namespace WebKhachSan.Controllers
             var taiKhoan = _context.TaiKhoans
                 .FirstOrDefault(t => t.TenDangNhap == tenDangNhap);
 
-            if (taiKhoan == null || taiKhoan.MatKhau != matKhau)
+            if (taiKhoan == null)
             {
-                ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc mật khẩu không chính xác.");
-                _logger.LogWarning($"Lỗi đăng nhập: Thông tin không hợp lệ cho tài khoản {tenDangNhap}");
+                ModelState.AddModelError(string.Empty, "Tên đăng nhập không tồn tại.");
+                _logger.LogWarning($"Lỗi đăng nhập: Tài khoản '{tenDangNhap}' không tồn tại.");
+                return View();
+            }
+
+            if (taiKhoan.MatKhau != matKhau)
+            {
+                ModelState.AddModelError(string.Empty, "Mật khẩu không chính xác. Vui lòng thử lại.");
+                _logger.LogWarning($"Lỗi đăng nhập: Sai mật khẩu cho tài khoản '{tenDangNhap}'.");
                 return View();
             }
 
