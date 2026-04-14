@@ -575,7 +575,7 @@
 
                     @if (danhSachLoaiPhong.Count() > 0)
                     {
-                        @foreach (var loaiPhong in danhSachLoaiPhong)
+                        foreach (var loaiPhong in danhSachLoaiPhong)
                         {
                             var currentPrice = ((IEnumerable<GiaPhong>)loaiPhong.GiaPhongs)?
                                 .Where(g => g.NgayBatDau <= DateTime.Now && 

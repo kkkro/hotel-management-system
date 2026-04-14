@@ -18,6 +18,18 @@ namespace WebKhachSan.Controllers
             _context = context;
         }
 
+        // Public booking page - no login required
+        [AllowAnonymous]
+        public async Task<IActionResult> BookingPublic()
+        {
+            var danhSachLoaiPhong = await _context.LoaiPhongs
+                .Include(l => l.GiaPhongs)
+                .OrderBy(l => l.TenLoaiPhong)
+                .ToListAsync();
+
+            return View(danhSachLoaiPhong);
+        }
+
         public async Task<IActionResult> Index()
         {
             // Thống kê phòng

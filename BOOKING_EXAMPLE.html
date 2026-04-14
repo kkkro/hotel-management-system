@@ -1,0 +1,340 @@
+<!-- Public Booking Form With Customer Creation Example -->
+
+<div class="booking-container">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Đặt Phòng Khách Sạn</h4>
+        </div>
+        <div class="card-body">
+            <!-- Customer Section -->
+            <div class="section">
+                <h5>1. Thông Tin Khách Hàng</h5>
+                <hr>
+                
+                <!-- Option 1: Select Existing Customer -->
+                <div class="form-group">
+                    <label for="existingCustomer">Chọn khách hàng hiện có (nếu có):</label>
+                    <select id="existingCustomer" class="form-control">
+                        <option value="">-- Chọn một khách hàng --</option>
+                    </select>
+                </div>
+                
+                <!-- Divider -->
+                <div class="divider">HOẶC</div>
+                
+                <!-- Option 2: Create New Customer -->
+                <div class="form-group">
+                    <label for="tenKhachHang">Tên Khách Hàng <span class="text-danger">*</span></label>
+                    <input 
+                        type="text" 
+                        id="tenKhachHang" 
+                        class="form-control" 
+                        placeholder="Nhập tên khách hàng"
+                        required>
+                    <small class="form-text text-muted">VD: Nguyễn Văn A</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="dienThoai">Số Điện Thoại <span class="text-danger">*</span></label>
+                    <input 
+                        type="tel" 
+                        id="dienThoai" 
+                        class="form-control" 
+                        placeholder="Nhập số điện thoại"
+                        required>
+                    <small class="form-text text-muted">VD: 0901234567</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="diaChi">Địa Chỉ</label>
+                    <input 
+                        type="text" 
+                        id="diaChi" 
+                        class="form-control" 
+                        placeholder="Nhập địa chỉ (tùy chọn)">
+                    <small class="form-text text-muted">VD: 123 Đường ABC, Quận 1, TP.HCM</small>
+                </div>
+
+                <button id="createCustomerBtn" class="btn btn-primary" type="button">
+                    Tạo Khách Hàng Mới
+                </button>
+                
+                <!-- Loading indicator -->
+                <div id="createCustomerLoading" class="spinner-border spinner-border-sm ms-2 d-none" role="status">
+                    <span class="visually-hidden">Đang xử lý...</span>
+                </div>
+            </div>
+
+            <!-- Selected Customer Info -->
+            <div class="section alert alert-info" id="selectedCustomerInfo" style="display: none;">
+                <p><strong>Khách hàng đã chọn:</strong></p>
+                <p>Mã: <span id="selectedCustomerId"></span></p>
+                <p>Tên: <span id="selectedCustomerName"></span></p>
+                <p>ĐT: <span id="selectedCustomerPhone"></span></p>
+                <button type="button" class="btn btn-sm btn-secondary" id="changeCustomerBtn">
+                    Chọn Khách Hàng Khác
+                </button>
+            </div>
+
+            <!-- Room Selection Section -->
+            <div class="section" id="roomSelectionSection" style="display: none;">
+                <h5>2. Chọn Phòng</h5>
+                <hr>
+                
+                <div class="form-group">
+                    <label for="roomType">Loại Phòng:</label>
+                    <select id="roomType" class="form-control">
+                        <option value="">-- Chọn loại phòng --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="checkInDate">Ngày Nhận Phòng:</label>
+                    <input type="date" id="checkInDate" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="checkOutDate">Ngày Trả Phòng:</label>
+                    <input type="date" id="checkOutDate" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="roomCount">Số Lượng Phòng:</label>
+                    <input type="number" id="roomCount" class="form-control" value="1" min="1" max="10">
+                </div>
+
+                <!-- Available Rooms -->
+                <div id="availableRoomsContainer">
+                    <!-- Dynamically loaded rooms will appear here -->
+                </div>
+            </div>
+
+            <!-- Summary Section -->
+            <div class="section" id="summarySection" style="display: none;">
+                <h5>3. Tóm Tắt Đơn Đặt</h5>
+                <hr>
+                <div id="bookingSummary">
+                    <!-- Summary will be displayed here -->
+                </div>
+            </div>
+
+            <!-- Booking Confirmation -->
+            <div class="mt-3">
+                <button id="submitBookingBtn" class="btn btn-success btn-lg" type="button" style="display: none;">
+                    <i class="fas fa-check"></i> Xác Nhận Đặt Phòng
+                </button>
+            </div>
+
+            <!-- Messages -->
+            <div id="alertContainer" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Include the Customer Creation Helper -->
+<script src="/js/booking-customer.js"></script>
+
+<script>
+    let selectedMaKhachHang = null;
+
+    // Load existing customers on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadExistingCustomers();
+    });
+
+    // Load existing customers
+    async function loadExistingCustomers() {
+        const customers = await BookingCustomer.getCustomers();
+        const select = document.getElementById('existingCustomer');
+        
+        customers.forEach(customer => {
+            const option = document.createElement('option');
+            option.value = customer.maKhachHang;
+            option.textContent = `${customer.tenKhachHang} (${customer.dienthoai})`;
+            select.appendChild(option);
+        });
+    }
+
+    // Select existing customer
+    document.getElementById('existingCustomer').addEventListener('change', (e) => {
+        if (e.target.value) {
+            const customers = Array.from(document.querySelectorAll('#existingCustomer option'))
+                .map(opt => ({ value: opt.value, text: opt.text }));
+            
+            const selected = customers.find(c => c.value === e.target.value);
+            selectCustomer(e.target.value, selected.text.split('(')[0].trim());
+        }
+    });
+
+    // Create new customer
+    document.getElementById('createCustomerBtn').addEventListener('click', async () => {
+        const tenKhachHang = document.getElementById('tenKhachHang').value;
+        const dienThoai = document.getElementById('dienThoai').value;
+        const diaChi = document.getElementById('diaChi').value;
+
+        // Validate
+        const validation = BookingCustomer.validateInput(tenKhachHang, dienThoai);
+        if (!validation.valid) {
+            showAlert(validation.message, 'danger');
+            return;
+        }
+
+        // Show loading
+        document.getElementById('createCustomerLoading').classList.remove('d-none');
+        document.getElementById('createCustomerBtn').disabled = true;
+
+        try {
+            const result = await BookingCustomer.createCustomer(tenKhachHang, dienThoai, diaChi);
+            
+            document.getElementById('createCustomerLoading').classList.add('d-none');
+            document.getElementById('createCustomerBtn').disabled = false;
+
+            if (result.success) {
+                showAlert('Khách hàng ' + (result.message === 'Sử dụng khách hàng hiện có' ? '(đã tồn tại) ' : '') + 'được lưu thành công!', 'success');
+                selectCustomer(result.maKhachHang, tenKhachHang);
+                
+                // Reload customer list
+                document.getElementById('existingCustomer').innerHTML = '<option value="">-- Chọn một khách hàng --</option>';
+                await loadExistingCustomers();
+            } else {
+                showAlert('Lỗi: ' + result.message, 'danger');
+            }
+        } catch (error) {
+            document.getElementById('createCustomerLoading').classList.add('d-none');
+            document.getElementById('createCustomerBtn').disabled = false;
+            showAlert('Lỗi kết nối: ' + error.message, 'danger');
+        }
+    });
+
+    // Select customer and show room selection
+    function selectCustomer(maKhachHang, tenKhachHang) {
+        selectedMaKhachHang = maKhachHang;
+        
+        // Update selected customer info
+        document.getElementById('selectedCustomerId').textContent = maKhachHang;
+        document.getElementById('selectedCustomerName').textContent = tenKhachHang;
+        document.getElementById('selectedCustomerInfo').style.display = 'block';
+        
+        // Hide customer creation section (optional)
+        // document.querySelector('.form-group').style.display = 'none';
+        
+        // Show room selection section
+        document.getElementById('roomSelectionSection').style.display = 'block';
+        document.getElementById('submitBookingBtn').style.display = 'block';
+    }
+
+    // Change customer
+    document.getElementById('changeCustomerBtn').addEventListener('click', () => {
+        document.getElementById('selectedCustomerInfo').style.display = 'none';
+        document.getElementById('roomSelectionSection').style.display = 'none';
+        document.getElementById('submitBookingBtn').style.display = 'none';
+        document.getElementById('existingCustomer').value = '';
+        document.getElementById('tenKhachHang').value = '';
+        document.getElementById('dienThoai').value = '';
+        document.getElementById('diaChi').value = '';
+        selectedMaKhachHang = null;
+    });
+
+    // Submit booking
+    document.getElementById('submitBookingBtn').addEventListener('click', async () => {
+        if (!selectedMaKhachHang) {
+            showAlert('Vui lòng chọn khách hàng trước', 'warning');
+            return;
+        }
+
+        const checkInDate = document.getElementById('checkInDate').value;
+        const checkOutDate = document.getElementById('checkOutDate').value;
+
+        if (!checkInDate || !checkOutDate) {
+            showAlert('Vui lòng chọn ngày nhận và trả phòng', 'warning');
+            return;
+        }
+
+        // TODO: Submit to booking endpoint
+        console.log('Booking submitted for customer:', selectedMaKhachHang);
+        showAlert('Đơn đặt phòng được gửi thành công!', 'success');
+    });
+
+    // Show alert message
+    function showAlert(message, type = 'info') {
+        const alertContainer = document.getElementById('alertContainer');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        alertContainer.appendChild(alertDiv);
+
+        // Auto dismiss after 5 seconds
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+</script>
+
+<style>
+    .booking-container {
+        max-width: 800px;
+        margin: 20px auto;
+    }
+
+    .section {
+        margin-bottom: 30px;
+    }
+
+    .section h5 {
+        color: #0d6efd;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .divider {
+        text-align: center;
+        margin: 20px 0;
+        color: #999;
+        font-size: 14px;
+        position: relative;
+    }
+
+    .divider::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        height: 1px;
+        background: #ddd;
+        z-index: 0;
+    }
+
+    .divider {
+        background: white;
+        z-index: 1;
+        position: relative;
+        padding: 0 10px;
+        display: inline-block;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn-primary, .btn-success {
+        border-radius: 4px;
+        font-weight: 500;
+    }
+</style>

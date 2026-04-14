@@ -215,9 +215,91 @@ namespace WebKhachSan.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // API: Get Customers List
+        [HttpGet]
+        public async Task<IActionResult> GetCustomers()
+        {
+            var customers = await _context.KhachHangs
+                .OrderBy(k => k.TenKhachHang)
+                .Select(k => new
+                {
+                    maKhachHang = k.MaKhachHang,
+                    tenKhachHang = k.TenKhachHang,
+                    dienthoai = k.DienThoai,
+                    diachi = k.DiaChi
+                })
+                .ToListAsync();
+
+            return Json(customers);
+        }
+
+        // API: Create Customer (Public - for public booking)
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> CreateCustomer([FromBody] CreateCustomerRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.TenKhachHang) || string.IsNullOrEmpty(request.DienThoai))
+                {
+                    return Json(new { success = false, message = "Thông tin không hợp lệ" });
+                }
+
+                // Generate customer ID
+                var lastCustomer = await _context.KhachHangs
+                    .OrderByDescending(k => k.MaKhachHang)
+                    .FirstOrDefaultAsync();
+
+                int nextNumber = 1;
+                if (lastCustomer != null && !string.IsNullOrEmpty(lastCustomer.MaKhachHang))
+                {
+                    var lastNum = int.TryParse(lastCustomer.MaKhachHang.Replace("KH", ""), out int num) ? num : 0;
+                    nextNumber = lastNum + 1;
+                }
+
+                string maKhachHang = "KH" + nextNumber.ToString("D6");
+
+                // Check phone already exists
+                if (await _context.KhachHangs.AnyAsync(k => k.DienThoai == request.DienThoai))
+                {
+                    var existing = await _context.KhachHangs
+                        .FirstOrDefaultAsync(k => k.DienThoai == request.DienThoai);
+                    return Json(new { success = true, maKhachHang = existing.MaKhachHang, message = "Sử dụng khách hàng hiện có" });
+                }
+
+                // Create customer
+                var khachHang = new KhachHang
+                {
+                    MaKhachHang = maKhachHang,
+                    TenKhachHang = request.TenKhachHang,
+                    DienThoai = request.DienThoai,
+                    DiaChi = request.DiaChi
+                };
+
+                _context.Add(khachHang);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Tạo khách hàng mới từ booking công khai: {0} - {1}", maKhachHang, request.TenKhachHang);
+
+                return Json(new { success = true, maKhachHang = maKhachHang });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi tạo khách hàng");
+                return Json(new { success = false, message = "Lỗi máy chủ" });
+            }
+        }
+
         private async Task<bool> KhachHangExists(string id)
         {
             return await _context.KhachHangs.AnyAsync(e => e.MaKhachHang == id);
         }
+    }
+
+    public class CreateCustomerRequest
+    {
+        public string TenKhachHang { get; set; }
+        public string DienThoai { get; set; }
+        public string DiaChi { get; set; }
     }
 }

@@ -1,0 +1,527 @@
+@model List<WebKhachSan.Models.LoaiPhong>
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Aura Hospitality - Đặt Phòng Trực Tuyến</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Manrope', sans-serif; }
+        :root {
+            --primary: #00236f;
+            --primary-container: #1e3a8a;
+            --secondary: #006c49;
+            --surface: #f8f9ff;
+            --surface-container: #e6eeff;
+            --on-surface: #0d1c2e;
+            --on-surface-variant: #444651;
+            --outline: #757682;
+        }
+        
+        body {
+            background-color: var(--surface);
+            color: var(--on-surface);
+        }
+        
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .hero-section {
+            height: 500px;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA3IoAKZqC38pocLoSl3CVb310mBiPt7raaUI5k4UoX8eopjjvLrzOGy_BkR7Tk2cewMjR6wUvnDz0aiPXqK527AWp98TnH62veN7uvn_4SGs3rUAyh6-QCl9-i38_I3yL0UtiBW4p2f3z3qBNLFdpTBNRPe9vjsxkDuP1HgvZ8xvcGWe0W_5JX2qpIDXXDOPEHJwTX6W-t27iiiU-83kf6CKBjn3jftu5R7mQpNebosOT0YUQcYuIRXsyFP9-6feJz_h9IqQ6PIlU');
+            background-size: cover;
+            background-position: center;
+            z-index: 0;
+            filter: brightness(0.7);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            color: white;
+            text-align: center;
+        }
+        
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-card {
+            background: white;
+            border-radius: 1.25rem;
+            box-shadow: 0 20px 25px -5px rgba(64, 89, 170, 0.1);
+            padding: 2.5rem;
+            margin-top: -4rem;
+            position: relative;
+            z-index: 20;
+        }
+        
+        .search-input-group label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--outline);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .search-input {
+            display: flex;
+            align-items: center;
+            background: var(--surface-container);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: none;
+        }
+        
+        .search-input input, .search-input select {
+            background: transparent !important;
+            border: none !important;
+            flex: 1;
+            font-weight: 500;
+            color: var(--on-surface);
+        }
+        
+        .search-input input:focus, .search-input select:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        
+        .search-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-container));
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .search-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .room-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .room-card:hover {
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
+            transform: translateY(-4px);
+        }
+        
+        .room-image {
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .room-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .room-card:hover .room-image img {
+            transform: scale(1.08);
+        }
+        
+        .room-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .room-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .room-price {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+        }
+        
+        .room-btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            background: transparent;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: auto;
+        }
+        
+        .room-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .modal-body {
+            padding: 2.5rem;
+        }
+        
+        .form-group-custom label {
+            font-weight: 600;
+            color: var(--primary);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-group-custom input, .form-group-custom select, .form-group-custom textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--surface-container);
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+        }
+        
+        .form-group-custom input:focus, .form-group-custom select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 35, 111, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#" style="color: var(--primary); font-size: 1.5rem;">✨ Aura</a>
+            <div class="ms-auto">
+                <a href="/Account/Login" class="btn btn-sm" style="background: linear-gradient(135deg, var(--primary), var(--primary-container)); color: white; font-weight: 700;">
+                    Quản Lý Đặt Phòng
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>Đặt Phòng Tại Aura Hospitality</h1>
+            <p class="fs-5 opacity-90">Khám phá kỳ nghỉ tuyệt vời cùng chúng tôi</p>
+        </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="py-5" style="padding-top: 2rem;">
+        <div class="container">
+            <div class="search-card">
+                <h5 style="font-weight: 700; color: var(--primary); margin-bottom: 2rem;">🔍 TÌM PHÒNG TRỐNG</h5>
+                <div class="row g-4">
+                    <div class="col-12 col-md-3">
+                        <div class="form-group-custom">
+                            <label>Ngày Nhận Phòng</label>
+                            <div class="search-input">
+                                <span class="material-icons" style="margin-right: 0.75rem;">calendar_today</span>
+                                <input type="date" id="ngayNhan" value="2026-04-15"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <div class="form-group-custom">
+                            <label>Ngày Trả Phòng</label>
+                            <div class="search-input">
+                                <span class="material-icons" style="margin-right: 0.75rem;">calendar_month</span>
+                                <input type="date" id="ngayTra" value="2026-04-18"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <div class="form-group-custom">
+                            <label>Loại Phòng</label>
+                            <div class="search-input">
+                                <span class="material-icons" style="margin-right: 0.75rem;">hotel</span>
+                                <select id="maLoaiPhong">
+                                    <option value="">-- Chọn Loại Phòng --</option>
+                                    @foreach (var loai in Model)
+                                    {
+                                        <option value="@loai.MaLoaiPhong">@loai.TenLoaiPhong</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3 d-flex align-items-end">
+                        <button class="search-btn" id="btnTim" onclick="timPhongTrong()">
+                            <span class="material-icons align-middle" style="margin-right: 0.5rem;">search</span>
+                            TÌM PHÒNG
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="py-5">
+        <div class="container">
+            <h2 style="font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 2rem;">📍 Phòng Trống Có Sẵn</h2>
+
+            <div class="loading" id="loading" style="display: none; text-align: center; padding: 2rem;">
+                <div class="spinner-border" role="status"></div>
+                <p class="mt-3">Đang tìm phòng trống...</p>
+            </div>
+
+            <div id="roomResults" class="row g-4"></div>
+            
+            <div class="no-results" id="noResults" style="display: none; text-align: center; padding: 2rem; color: var(--outline);">
+                <p style="font-size: 1.125rem; margin-bottom: 1rem;">❌ Không tìm thấy phòng trống</p>
+                <p>Vui lòng chọn ngày khác</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Modal -->
+    <div class="modal fade" id="bookingModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), var(--primary-container)); color: white;">
+                    <h5 class="modal-title fw-bold">📋 Đặt Phòng</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 2.5rem;">
+                    <div style="background: #e3f2fd; border: 1px solid #90caf9; color: #01579b; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+                        <strong>📌 Lưu ý:</strong> Vui lòng điền đầy đủ thông tin
+                    </div>
+
+                    <form id="bookingForm">
+                        <input type="hidden" id="hiddenMaLoaiPhong" value=""/>
+                        <input type="hidden" id="hiddenNgayNhan" value=""/>
+                        <input type="hidden" id="hiddenNgayTra" value=""/>
+                        <input type="hidden" id="hiddenGia" value=""/>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p style="color: var(--outline); font-size: 0.875rem; margin-bottom: 0.25rem;">Loại Phòng</p>
+                                <p style="font-weight: 700; color: var(--primary); font-size: 1.125rem;" id="displayLoaiPhong"></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p style="color: var(--outline); font-size: 0.875rem; margin-bottom: 0.25rem;">Giá (VND/đêm)</p>
+                                <p style="font-weight: 700; color: var(--secondary); font-size: 1.125rem;" id="displayGia"></p>
+                            </div>
+                        </div>
+
+                        <hr/>
+                        <h6 style="font-weight: 700; color: var(--primary); margin-bottom: 1.5rem;">👤 Thông Tin Khách Hàng</h6>
+
+                        <div style="margin-bottom: 1.5rem;" class="form-group-custom">
+                            <label>Họ và Tên <span style="color: red;">*</span></label>
+                            <input type="text" id="tenKhachHang" placeholder="Nhập họ và tên" required/>
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;" class="form-group-custom">
+                            <label>Số Điện Thoại <span style="color: red;">*</span></label>
+                            <input type="tel" id="dienThoai" placeholder="Nhập số điện thoại" required/>
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;" class="form-group-custom">
+                            <label>Địa Chỉ <span style="color: red;">*</span></label>
+                            <input type="text" id="diaChi" placeholder="Nhập địa chỉ" required/>
+                        </div>
+
+                        <div style="background: var(--surface); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                                <span>Số đêm:</span>
+                                <strong id="calcNights">0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                                <span>Giá/đêm:</span>
+                                <strong id="calcGia">0 VND</strong>
+                            </div>
+                            <hr style="margin: 1rem 0;"/>
+                            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.125rem;">
+                                <span>Tổng Cộng:</span>
+                                <strong style="color: var(--primary);" id="calcTotal">0 VND</strong>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-100 btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-container)); border: none; color: white; font-weight: 700; padding: 0.75rem; border-radius: 0.5rem; cursor: pointer;">
+                            ✅ Hoàn Thành Đặt Phòng
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p style="margin: 0; font-size: 0.875rem;">© 2026 Aura Hospitality | 📞 +84 24 3456 7890</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+
+        function timPhongTrong() {
+            const ngayNhan = document.getElementById('ngayNhan').value;
+            const ngayTra = document.getElementById('ngayTra').value;
+            const maLoaiPhong = document.getElementById('maLoaiPhong').value;
+
+            if (!ngayNhan || !ngayTra || !maLoaiPhong) {
+                alert('Vui lòng chọn đầy đủ thông tin tìm kiếm');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('roomResults').innerHTML = '';
+            document.getElementById('noResults').style.display = 'none';
+
+            fetch('/DatPhong/GetAvailableRooms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ maLoaiPhong: maLoaiPhong, ngayNhan: ngayNhan, ngayTra: ngayTra })
+            })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                if (data.success && data.phongTrongs.length > 0) {
+                    let html = '';
+                    data.phongTrongs.forEach(room => {
+                        html += `<div class="col-12 col-md-6 col-lg-4">
+                            <div class="room-card">
+                                <div class="room-image">
+                                    <img src="https://via.placeholder.com/400x200?text=${room.tenLoaiPhong}" alt="${room.tenLoaiPhong}"/>
+                                </div>
+                                <div class="room-content">
+                                    <h5 class="room-title">${room.tenLoaiPhong}</h5>
+                                    <p style="color: var(--on-surface-variant); margin-bottom: 0.5rem;">Phòng: <strong>${room.maPhong}</strong></p>
+                                    <p class="room-price">${(data.gia).toLocaleString('vi-VN')} VND/đêm</p>
+                                    <button type="button" class="room-btn" onclick="openBookingForm('${room.tenLoaiPhong}', '${room.maPhong}', '${maLoaiPhong}', ${data.gia}, '${ngayNhan}', '${ngayTra}')">
+                                        Đặt Ngay
+                                    </button>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                    document.getElementById('roomResults').innerHTML = html;
+                } else {
+                    document.getElementById('noResults').style.display = 'block';
+                }
+            })
+            .catch(e => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('noResults').style.display = 'block';
+                console.error('Lỗi:', e);
+            });
+        }
+
+        function openBookingForm(tenLoaiPhong, maPhong, maLoaiPhong, gia, ngayNhan, ngayTra) {
+            document.getElementById('displayLoaiPhong').textContent = tenLoaiPhong;
+            document.getElementById('displayGia').textContent = gia.toLocaleString('vi-VN') + ' VND';
+            
+            document.getElementById('hiddenMaLoaiPhong').value = maLoaiPhong;
+            document.getElementById('hiddenNgayNhan').value = ngayNhan;
+            document.getElementById('hiddenNgayTra').value = ngayTra;
+            document.getElementById('hiddenGia').value = gia;
+
+            const nights = Math.ceil((new Date(ngayTra) - new Date(ngayNhan)) / (1000 * 60 * 60 * 24));
+            const total = gia * nights;
+
+            document.getElementById('calcGia').textContent = gia.toLocaleString('vi-VN') + ' VND';
+            document.getElementById('calcNights').textContent = nights;
+            document.getElementById('calcTotal').textContent = total.toLocaleString('vi-VN') + ' VND';
+
+            bookingModal.show();
+        }
+
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const tenKhach = document.getElementById('tenKhachHang').value;
+            const sdt = document.getElementById('dienThoai').value;
+            const diaChi = document.getElementById('diaChi').value;
+            const maLoai = document.getElementById('hiddenMaLoaiPhong').value;
+            const ngayNhan = document.getElementById('hiddenNgayNhan').value;
+            const ngayTra = document.getElementById('hiddenNgayTra').value;
+
+            // Tạo khách hàng
+            fetch('/KhachHang/Create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tenKhachHang: tenKhach, dienThoai: sdt, diaChi: diaChi })
+            })
+            .then(r => r.json())
+            .then(cust => {
+                if (cust.success) {
+                    // Tạo đơn đặt phòng
+                    return fetch('/DatPhong/CreateFromPublic', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            maKhachHang: cust.maKhachHang,
+                            maLoaiPhong: maLoai,
+                            ngayNhanDuKien: ngayNhan,
+                            ngayTraDuKien: ngayTra,
+                            soLuong: 1,
+                            ghiChu: ''
+                        })
+                    });
+                } else throw new Error(cust.message);
+            })
+            .then(r => r.json())
+            .then(booking => {
+                if (booking.success) {
+                    alert('✅ Đặt phòng thành công!\n\nMã đơn: ' + booking.maDatPhong + '\n\nChúng tôi sẽ liên hệ trong 24 giờ để xác nhận.');
+                    bookingModal.hide();
+                    document.getElementById('bookingForm').reset();
+                } else {
+                    alert('❌ Lỗi: ' + (booking.message || 'Không thể tạo đơn'));
+                }
+            })
+            .catch(e => {
+                console.error('Lỗi:', e);
+                alert('❌ Lỗi: ' + e.message);
+            });
+        });
+    </script>
+</body>
+</html>
