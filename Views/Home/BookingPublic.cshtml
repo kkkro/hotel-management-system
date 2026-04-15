@@ -401,6 +401,14 @@
     <script>
         const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
 
+        async function readJson(response) {
+            const text = await response.text();
+            if (!response.ok) {
+                throw new Error(text || `HTTP ${response.status}`);
+            }
+            return text ? JSON.parse(text) : {};
+        }
+
         function timPhongTrong() {
             const ngayNhan = document.getElementById('ngayNhan').value;
             const ngayTra = document.getElementById('ngayTra').value;
@@ -420,7 +428,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ maLoaiPhong: maLoaiPhong, ngayNhan: ngayNhan, ngayTra: ngayTra })
             })
-            .then(r => r.json())
+            .then(readJson)
             .then(data => {
                 document.getElementById('loading').style.display = 'none';
                 if (data.success && data.phongTrongs.length > 0) {
@@ -483,13 +491,13 @@
             const ngayNhan = document.getElementById('hiddenNgayNhan').value;
             const ngayTra = document.getElementById('hiddenNgayTra').value;
 
-            // Tạo khách hàng
-            fetch('/KhachHang/Create', {
+            // Tạo khách hàng (API JSON - public)
+            fetch('/KhachHang/CreateCustomer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tenKhachHang: tenKhach, dienThoai: sdt, diaChi: diaChi })
             })
-            .then(r => r.json())
+            .then(readJson)
             .then(cust => {
                 if (cust.success) {
                     // Tạo đơn đặt phòng
@@ -507,7 +515,7 @@
                     });
                 } else throw new Error(cust.message);
             })
-            .then(r => r.json())
+            .then(readJson)
             .then(booking => {
                 if (booking.success) {
                     alert('✅ Đặt phòng thành công!\n\nMã đơn: ' + booking.maDatPhong + '\n\nChúng tôi sẽ liên hệ trong 24 giờ để xác nhận.');
