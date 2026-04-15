@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 using WebKhachSan.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +8,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // Add DbContext
-builder.Services.AddDbContext<QuanLyKhachSanContext>();
+builder.Services.AddDbContext<QuanLyKhachSanContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException("Missing connection string 'ConnectionStrings:DefaultConnection'.");
+    }
+
+    options.UseSqlServer(connectionString);
+});
 
 // Add Logging
 builder.Services.AddLogging();
