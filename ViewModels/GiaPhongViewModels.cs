@@ -32,13 +32,14 @@ namespace WebKhachSan.ViewModels
         public string? TenLoaiPhong { get; set; }
         public int SoLuongPhong { get; set; }
         public double? GiaHienTai { get; set; }
+        public bool Selected { get; set; }
     }
 
     public class BulkSetPriceViewModel
     {
         public DateTime? NgayBatDau { get; set; }
         public DateTime? NgayKetThuc { get; set; }
-        public List<PhongChuaCoGiaViewModel> PhongsChuaCoGia { get; set; } = new();
+        public List<LoaiPhongBulkSelectionItemViewModel> LoaiPhongsChuaCoGia { get; set; } = new();
     }
 
     public class PhongChuaCoGiaViewModel
@@ -54,8 +55,8 @@ namespace WebKhachSan.ViewModels
     {
         public DateTime NgayBatDau { get; set; }
         public DateTime? NgayKetThuc { get; set; }
-        public List<string> SelectedPhongs { get; set; } = new();
-        public List<PhongChuaCoGiaViewModel> Phongs { get; set; } = new();
+        public List<string> SelectedLoaiPhongIds { get; set; } = new();
+        public List<LoaiPhongBulkSelectionItemViewModel> LoaiPhongs { get; set; } = new();
 
         [Required(ErrorMessage = "Gia phong khong duoc de trong.")]
         [Range(1000, double.MaxValue, ErrorMessage = "Gia phong phai lon hon 1000.")]

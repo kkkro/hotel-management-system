@@ -79,14 +79,25 @@ namespace WebKhachSan.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BulkSetPrice(BulkPriceInputViewModel model)
         {
-            if (model.SelectedPhongs == null || !model.SelectedPhongs.Any())
+            if (model.SelectedLoaiPhongIds == null || !model.SelectedLoaiPhongIds.Any())
             {
-                ModelState.AddModelError(string.Empty, "Vui long chon it nhat mot phong.");
+                ModelState.AddModelError(string.Empty, "Vui long chon it nhat mot loai phong.");
             }
 
             if (model.Gia <= 0)
             {
                 ModelState.AddModelError(nameof(model.Gia), "Gia phong phai lon hon 0.");
+            }
+
+            if (model.SelectedLoaiPhongIds != null && model.SelectedLoaiPhongIds.Any())
+            {
+                foreach (var maLoaiPhong in model.SelectedLoaiPhongIds)
+                {
+                    if (await HasOverlappingPriceRangeAsync(maLoaiPhong, model.NgayBatDau, model.NgayKetThuc))
+                    {
+                        ModelState.AddModelError(string.Empty, $"Loai phong '{maLoaiPhong}' da co bang gia trung thoi gian ap dung.");
+                    }
+                }
             }
 
             if (!ModelState.IsValid)
@@ -99,28 +110,26 @@ namespace WebKhachSan.Controllers
             {
                 var nextNumber = await GetNextMaGiaNumberAsync();
                 var giaPhongs = new List<GiaPhong>();
-                var count = 0;
 
-                foreach (var maPhong in model.SelectedPhongs)
+                foreach (var maLoaiPhong in model.SelectedLoaiPhongIds)
                 {
                     giaPhongs.Add(new GiaPhong
                     {
-                        MaGia = $"G{nextNumber + count:D3}",
-                        MaLoaiPhong = model.Phongs.FirstOrDefault(p => p.MaPhong == maPhong)?.MaLoaiPhong,
+                        MaGia = $"G{nextNumber++:D3}",
+                        MaLoaiPhong = maLoaiPhong,
                         Gia = model.Gia,
                         NgayBatDau = model.NgayBatDau,
                         NgayKetThuc = model.NgayKetThuc
                     });
-                    count++;
                 }
 
                 _context.GiaPhongs.AddRange(giaPhongs);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Nguoi dung {User} dat gia hang loat cho {Count} phong, gia {Gia}",
+                _logger.LogInformation("Nguoi dung {User} dat gia hang loat cho {Count} loai phong, gia {Gia}",
                     User.Identity?.Name, giaPhongs.Count, model.Gia);
 
-                TempData["Success"] = $"Da dat gia {model.Gia:N0} VND cho {giaPhongs.Count} phong thanh cong.";
+                TempData["Success"] = $"Da dat gia {model.Gia:N0} VND cho {giaPhongs.Count} loai phong thanh cong.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -135,40 +144,41 @@ namespace WebKhachSan.Controllers
         private async Task<BulkSetPriceViewModel> BuildBulkSetPriceViewModelAsync(DateTime? tuNgay, DateTime? denNgay)
         {
             var startDate = tuNgay ?? DateTime.Today;
-            var endDate = denNgay ?? DateTime.Today.AddMonths(1);
+            var endDate = denNgay;
+            var effectiveEndDate = (endDate ?? DateTime.MaxValue).Date;
 
-            var phongs = await _context.Phongs
-                .Include(p => p.MaLoaiPhongNavigation)
-                .Where(p => p.TrangThai == "Trống" || p.TrangThai == "Có khách")
-                .OrderBy(p => p.MaLoaiPhong)
-                .ThenBy(p => p.SoPhong)
-                .ToListAsync();
-
-            var phongsCoGia = await _context.GiaPhongs
+            var loaiPhongCoGia = await _context.GiaPhongs
                 .Where(g => g.MaLoaiPhong != null
-                    && g.NgayBatDau <= endDate
-                    && (g.NgayKetThuc == null || g.NgayKetThuc >= startDate))
-                .Select(g => g.MaLoaiPhong)
+                    && g.NgayBatDau.HasValue
+                    && g.NgayBatDau.Value.Date <= effectiveEndDate
+                    && (g.NgayKetThuc == null || g.NgayKetThuc.Value.Date >= startDate.Date))
+                .Select(g => g.MaLoaiPhong!)
                 .Distinct()
                 .ToListAsync();
 
-            var phongsChuaCoGia = phongs
-                .Where(p => !phongsCoGia.Contains(p.MaLoaiPhong))
-                .Select(p => new PhongChuaCoGiaViewModel
+            var loaiPhongsChuaCoGia = await _context.LoaiPhongs
+                .Include(l => l.Phongs)
+                .Include(l => l.GiaPhongs)
+                .Where(l => !loaiPhongCoGia.Contains(l.MaLoaiPhong))
+                .OrderBy(l => l.TenLoaiPhong)
+                .Select(l => new LoaiPhongBulkSelectionItemViewModel
                 {
-                    MaPhong = p.MaPhong,
-                    SoPhong = p.SoPhong,
-                    MaLoaiPhong = p.MaLoaiPhong ?? string.Empty,
-                    TenLoaiPhong = p.MaLoaiPhongNavigation?.TenLoaiPhong,
-                    Selected = false
+                    MaLoaiPhong = l.MaLoaiPhong,
+                    TenLoaiPhong = l.TenLoaiPhong,
+                    SoLuongPhong = l.Phongs.Count,
+                    GiaHienTai = l.GiaPhongs
+                        .Where(g => g.NgayBatDau <= startDate && (g.NgayKetThuc == null || g.NgayKetThuc >= startDate))
+                        .OrderByDescending(g => g.NgayBatDau)
+                        .Select(g => g.Gia)
+                        .FirstOrDefault()
                 })
-                .ToList();
+                .ToListAsync();
 
             return new BulkSetPriceViewModel
             {
                 NgayBatDau = startDate,
                 NgayKetThuc = endDate,
-                PhongsChuaCoGia = phongsChuaCoGia
+                LoaiPhongsChuaCoGia = loaiPhongsChuaCoGia
             };
         }
 
