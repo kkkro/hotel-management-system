@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using WebKhachSan.Models;
+using WebKhachSan.ViewModels;
 
 namespace WebKhachSan.Controllers
 {
@@ -10,6 +11,7 @@ namespace WebKhachSan.Controllers
     {
         private readonly QuanLyKhachSanContext _context;
         private readonly ILogger<DatPhongController> _logger;
+        private static readonly string[] TrangThaiPhongTrongVariants = { "Trống", "Tr?ng", "Trá»‘ng" };
 
         public DatPhongController(QuanLyKhachSanContext context, ILogger<DatPhongController> logger)
         {
@@ -341,6 +343,173 @@ namespace WebKhachSan.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> CheckIn(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return Content("<div class='alert alert-danger mb-0'>Don dat phong khong hop le.</div>", "text/html");
+            }
+
+            var datPhong = await _context.DatPhongs
+                .Include(dp => dp.MaKhachHangNavigation)
+                .Include(dp => dp.CtdatPhongs)
+                    .ThenInclude(ct => ct.MaLoaiPhongNavigation)
+                .FirstOrDefaultAsync(dp => dp.MaDatPhong == id);
+
+            if (datPhong == null)
+            {
+                return Content("<div class='alert alert-danger mb-0'>Khong tim thay don dat phong.</div>", "text/html");
+            }
+
+            if (datPhong.TrangThai != "Đã xác nhận")
+            {
+                return Content("<div class='alert alert-warning mb-0'>Chi don da xac nhan moi co the checkin.</div>", "text/html");
+            }
+
+            var model = await BuildCheckInViewModelAsync(datPhong);
+            return PartialView("_CheckInModal", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CheckIn(DatPhongCheckInViewModel model)
+        {
+            var datPhong = await _context.DatPhongs
+                .Include(dp => dp.MaKhachHangNavigation)
+                .Include(dp => dp.CtdatPhongs)
+                    .ThenInclude(ct => ct.MaLoaiPhongNavigation)
+                .FirstOrDefaultAsync(dp => dp.MaDatPhong == model.MaDatPhong);
+
+            if (datPhong == null)
+            {
+                Response.StatusCode = 404;
+                return Content("<div class='alert alert-danger mb-0'>Khong tim thay don dat phong.</div>", "text/html");
+            }
+
+            if (datPhong.TrangThai != "Đã xác nhận")
+            {
+                Response.StatusCode = 400;
+                return Content("<div class='alert alert-warning mb-0'>Don dat phong nay khong o trang thai co the checkin.</div>", "text/html");
+            }
+
+            var expectedGroups = datPhong.CtdatPhongs
+                .GroupBy(ct => new { ct.MaLoaiPhong, TenLoaiPhong = ct.MaLoaiPhongNavigation != null ? ct.MaLoaiPhongNavigation.TenLoaiPhong : ct.MaLoaiPhong })
+                .Select(g => new
+                {
+                    MaLoaiPhong = g.Key.MaLoaiPhong,
+                    TenLoaiPhong = g.Key.TenLoaiPhong ?? g.Key.MaLoaiPhong ?? string.Empty,
+                    SoLuong = g.Sum(x => x.SoLuong ?? 0)
+                })
+                .ToList();
+
+            model = await BuildCheckInViewModelAsync(datPhong, model);
+
+            foreach (var expected in expectedGroups)
+            {
+                var submitted = model.LoaiPhongs.FirstOrDefault(lp => lp.MaLoaiPhong == expected.MaLoaiPhong);
+                var selectedCount = submitted?.SelectedPhongIds?.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().Count() ?? 0;
+
+                if (selectedCount != expected.SoLuong)
+                {
+                    ModelState.AddModelError(string.Empty, $"Loai phong '{expected.TenLoaiPhong}' can chon dung {expected.SoLuong} phong.");
+                }
+            }
+
+            var allSelectedRoomIds = model.LoaiPhongs
+                .SelectMany(lp => lp.SelectedPhongIds ?? new List<string>())
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToList();
+
+            if (allSelectedRoomIds.Count != allSelectedRoomIds.Distinct().Count())
+            {
+                ModelState.AddModelError(string.Empty, "Khong duoc chon trung mot phong cho nhieu loai.");
+            }
+
+            var selectedRooms = await _context.Phongs
+                .Include(p => p.MaLoaiPhongNavigation)
+                .Where(p => allSelectedRoomIds.Contains(p.MaPhong))
+                .ToListAsync();
+
+            if (selectedRooms.Count != allSelectedRoomIds.Distinct().Count())
+            {
+                ModelState.AddModelError(string.Empty, "Mot hoac nhieu phong duoc chon khong ton tai.");
+            }
+
+            foreach (var room in selectedRooms)
+            {
+                if (room.TrangThai == null || !TrangThaiPhongTrongVariants.Contains(room.TrangThai))
+                {
+                    ModelState.AddModelError(string.Empty, $"Phong {room.SoPhong ?? room.MaPhong} khong con trong.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                Response.StatusCode = 400;
+                return PartialView("_CheckInModal", model);
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var existingRentalIds = await _context.ThuePhongs
+                    .Select(tp => tp.MaThuePhong)
+                    .ToListAsync();
+
+                var nextRentalNumber = existingRentalIds
+                    .Select(id =>
+                    {
+                        var digits = new string((id ?? string.Empty).Skip(2).Where(char.IsDigit).ToArray());
+                        return int.TryParse(digits, out var number) ? number : 0;
+                    })
+                    .DefaultIfEmpty(0)
+                    .Max() + 1;
+
+                foreach (var room in selectedRooms)
+                {
+                    var maThuePhong = $"TP{nextRentalNumber:D3}";
+                    nextRentalNumber++;
+                    var gia = await GetCurrentPriceValueAsync(room.MaLoaiPhong);
+
+                    _context.ThuePhongs.Add(new ThuePhong
+                    {
+                        MaThuePhong = maThuePhong,
+                        MaKhachHang = datPhong.MaKhachHang,
+                        TrangThai = "Đang thuê",
+                        NgayNhan = datPhong.NgayNhanDuKien ?? DateTime.Today,
+                        NgayTra = datPhong.NgayTraDuKien
+                    });
+
+                    _context.CtthuePhongs.Add(new CtthuePhong
+                    {
+                        MaThuePhong = maThuePhong,
+                        MaPhong = room.MaPhong,
+                        GiaThueTaiThoiDiem = gia
+                    });
+
+                    room.TrangThai = "Có khách";
+                }
+
+                datPhong.TrangThai = "Đã checkin";
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Nguoi dung {User} checkin don dat phong {MaDatPhong} thanh {Count} phieu thue",
+                    User.Identity?.Name, datPhong.MaDatPhong, selectedRooms.Count);
+
+                return Json(new { success = true, message = $"Da checkin thanh cong cho don {datPhong.MaDatPhong}." });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Loi khi checkin don dat phong {MaDatPhong}", datPhong.MaDatPhong);
+                Response.StatusCode = 500;
+                return PartialView("_CheckInModal", model);
+            }
+        }
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -386,7 +555,7 @@ namespace WebKhachSan.Controllers
                 var availableRooms = await _context.Phongs
                     .Include(p => p.MaLoaiPhongNavigation)
                     .Where(p => !bookedRoomIds.Contains(p.MaPhong))
-                    .Where(p => p.TrangThai == null || p.TrangThai == "Trống")
+                    .Where(p => p.TrangThai == null || TrangThaiPhongTrongVariants.Contains(p.TrangThai))
                     .Select(p => new AvailableRoomDto
                     {
                         MaPhong = p.MaPhong,
@@ -498,6 +667,57 @@ namespace WebKhachSan.Controllers
                 .OrderByDescending(gp => gp.NgayBatDau)
                 .Select(gp => gp.Gia ?? 0.0)
                 .FirstOrDefaultAsync();
+        }
+
+        private async Task<DatPhongCheckInViewModel> BuildCheckInViewModelAsync(DatPhong datPhong, DatPhongCheckInViewModel? postedModel = null)
+        {
+            var groupedBookedTypes = datPhong.CtdatPhongs
+                .GroupBy(ct => new { ct.MaLoaiPhong, TenLoaiPhong = ct.MaLoaiPhongNavigation != null ? ct.MaLoaiPhongNavigation.TenLoaiPhong : ct.MaLoaiPhong })
+                .Select(g => new
+                {
+                    MaLoaiPhong = g.Key.MaLoaiPhong ?? string.Empty,
+                    TenLoaiPhong = g.Key.TenLoaiPhong ?? g.Key.MaLoaiPhong ?? string.Empty,
+                    SoLuong = g.Sum(x => x.SoLuong ?? 0)
+                })
+                .ToList();
+
+            var model = new DatPhongCheckInViewModel
+            {
+                MaDatPhong = datPhong.MaDatPhong,
+                MaKhachHang = datPhong.MaKhachHang,
+                TenKhachHang = datPhong.MaKhachHangNavigation?.TenKhachHang ?? string.Empty,
+                DienThoai = datPhong.MaKhachHangNavigation?.DienThoai,
+                NgayNhan = datPhong.NgayNhanDuKien,
+                NgayTra = datPhong.NgayTraDuKien
+            };
+
+            foreach (var bookedType in groupedBookedTypes)
+            {
+                var postedType = postedModel?.LoaiPhongs.FirstOrDefault(x => x.MaLoaiPhong == bookedType.MaLoaiPhong);
+                var availableRooms = await _context.Phongs
+                    .Where(p => p.MaLoaiPhong == bookedType.MaLoaiPhong && p.TrangThai != null && TrangThaiPhongTrongVariants.Contains(p.TrangThai))
+                    .OrderBy(p => p.SoPhong)
+                    .Select(p => new PhongTrongItemViewModel
+                    {
+                        MaPhong = p.MaPhong,
+                        SoPhong = p.SoPhong,
+                        MaLoaiPhong = p.MaLoaiPhong,
+                        TenLoaiPhong = bookedType.TenLoaiPhong,
+                        GiaHienTai = null
+                    })
+                    .ToListAsync();
+
+                model.LoaiPhongs.Add(new DatPhongCheckInLoaiPhongViewModel
+                {
+                    MaLoaiPhong = bookedType.MaLoaiPhong,
+                    TenLoaiPhong = bookedType.TenLoaiPhong,
+                    SoLuongCanChon = bookedType.SoLuong,
+                    SelectedPhongIds = postedType?.SelectedPhongIds ?? new List<string>(),
+                    PhongTrong = availableRooms
+                });
+            }
+
+            return model;
         }
 
         private bool DatPhongExists(string id)

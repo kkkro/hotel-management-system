@@ -11,6 +11,10 @@ namespace WebKhachSan.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly QuanLyKhachSanContext _context;
+        private static readonly string[] TrangThaiPhongTrongVariants = { "Trống", "Tr?ng", "Trá»‘ng" };
+        private static readonly string[] TrangThaiCoKhachVariants = { "Có khách", "CÃ³ khÃ¡ch", "Co khach" };
+        private static readonly string[] TrangThaiBaoTriVariants = { "Bảo trì", "B?o trì", "Báº£o trÃ¬" };
+        private static readonly string[] TrangThaiDaDatVariants = { "Đã đặt", "Ðã d?t", "ÄÃ£ Ä‘áº·t" };
 
         public HomeController(ILogger<HomeController> logger, QuanLyKhachSanContext context)
         {
@@ -34,10 +38,10 @@ namespace WebKhachSan.Controllers
         {
             // Thống kê phòng
             var tongPhong = await _context.Phongs.CountAsync();
-            var phongTrong = await _context.Phongs.Where(p => p.TrangThai == "Trống").CountAsync();
-            var phongCoKhach = await _context.Phongs.Where(p => p.TrangThai == "Có khách").CountAsync();
-            var phongBaoTri = await _context.Phongs.Where(p => p.TrangThai == "Bảo trì").CountAsync();
-            var phongDaDat = await _context.Phongs.Where(p => p.TrangThai == "Đã đặt").CountAsync();
+            var phongTrong = await _context.Phongs.Where(p => p.TrangThai != null && TrangThaiPhongTrongVariants.Contains(p.TrangThai)).CountAsync();
+            var phongCoKhach = await _context.Phongs.Where(p => p.TrangThai != null && TrangThaiCoKhachVariants.Contains(p.TrangThai)).CountAsync();
+            var phongBaoTri = await _context.Phongs.Where(p => p.TrangThai != null && TrangThaiBaoTriVariants.Contains(p.TrangThai)).CountAsync();
+            var phongDaDat = await _context.Phongs.Where(p => p.TrangThai != null && TrangThaiDaDatVariants.Contains(p.TrangThai)).CountAsync();
 
             // Lấy danh sách phòng với thông tin chi tiết
             var danhSachPhong = await _context.Phongs

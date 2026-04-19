@@ -1,6 +1,7 @@
 ﻿@inject WebKhachSan.Models.QuanLyKhachSanContext DbContext
 @{
-    var phongTrongCount = DbContext.Phongs.Count(p => p.TrangThai == "Trống");
+    var trangThaiPhongTrongVariants = new[] { "Trống", "Tr?ng", "Trá»‘ng" };
+    var phongTrongCount = DbContext.Phongs.Count(p => p.TrangThai != null && trangThaiPhongTrongVariants.Contains(p.TrangThai));
 }
 <!DOCTYPE html>
 <html lang="vi">

@@ -224,16 +224,14 @@ namespace WebKhachSan.Models
                     .HasColumnName("CCCD");
 
                 entity.Property(e => e.DiaChi)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
+                    .HasMaxLength(255);
 
                 entity.Property(e => e.DienThoai)
                     .HasMaxLength(15)
                     .IsUnicode(false);
 
                 entity.Property(e => e.TenKhachHang)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
+                    .HasMaxLength(100);
             });
 
             modelBuilder.Entity<LoaiPhong>(entity =>
@@ -247,11 +245,10 @@ namespace WebKhachSan.Models
                     .HasMaxLength(20)
                     .IsUnicode(false);
 
-                entity.Property(e => e.MoTa).HasColumnType("text");
+                entity.Property(e => e.MoTa).HasColumnType("nvarchar(max)");
 
                 entity.Property(e => e.TenLoaiPhong)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
+                    .HasMaxLength(100);
             });
 
             modelBuilder.Entity<NhanVien>(entity =>
@@ -303,8 +300,7 @@ namespace WebKhachSan.Models
                     .IsUnicode(false);
 
                 entity.Property(e => e.TrangThai)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
+                    .HasMaxLength(50);
 
                 entity.HasOne(d => d.MaLoaiPhongNavigation)
                     .WithMany(p => p.Phongs)
@@ -330,8 +326,7 @@ namespace WebKhachSan.Models
                     .IsUnicode(false);
 
                 entity.Property(e => e.VaiTro)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
+                    .HasMaxLength(50);
             });
 
             modelBuilder.Entity<ThuePhong>(entity =>
@@ -352,6 +347,8 @@ namespace WebKhachSan.Models
                 entity.Property(e => e.NgayNhan).HasColumnType("date");
 
                 entity.Property(e => e.NgayTra).HasColumnType("date");
+
+                entity.Property(e => e.TrangThai).HasMaxLength(50);
 
                 entity.HasOne(d => d.MaKhachHangNavigation)
                     .WithMany(p => p.ThuePhongs)

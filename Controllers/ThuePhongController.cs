@@ -11,6 +11,7 @@ namespace WebKhachSan.Controllers
     {
         private readonly QuanLyKhachSanContext _context;
         private readonly ILogger<ThuePhongController> _logger;
+        private static readonly string[] TrangThaiPhongTrongVariants = { "Trống", "Tr?ng", "Trá»‘ng" };
 
         public ThuePhongController(QuanLyKhachSanContext context, ILogger<ThuePhongController> logger)
         {
@@ -416,7 +417,7 @@ namespace WebKhachSan.Controllers
         {
             var query = _context.Phongs
                 .Include(p => p.MaLoaiPhongNavigation)
-                .Where(p => p.TrangThai == "Trống");
+                .Where(p => p.TrangThai != null && TrangThaiPhongTrongVariants.Contains(p.TrangThai));
 
             if (!string.IsNullOrWhiteSpace(maPhong))
             {
@@ -460,7 +461,7 @@ namespace WebKhachSan.Controllers
         {
             var phong = await _context.Phongs
                 .Include(p => p.MaLoaiPhongNavigation)
-                .FirstOrDefaultAsync(p => p.MaPhong == maPhong && p.TrangThai == "Trống");
+                .FirstOrDefaultAsync(p => p.MaPhong == maPhong && p.TrangThai != null && TrangThaiPhongTrongVariants.Contains(p.TrangThai));
 
             if (phong == null)
             {

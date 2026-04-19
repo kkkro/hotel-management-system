@@ -118,4 +118,24 @@ namespace WebKhachSan.ViewModels
         public string? TenLoaiPhong { get; set; }
         public double? GiaThue { get; set; }
     }
+
+    public class DatPhongCheckInViewModel
+    {
+        public string MaDatPhong { get; set; } = string.Empty;
+        public string? MaKhachHang { get; set; }
+        public string TenKhachHang { get; set; } = string.Empty;
+        public string? DienThoai { get; set; }
+        public DateTime? NgayNhan { get; set; }
+        public DateTime? NgayTra { get; set; }
+        public List<DatPhongCheckInLoaiPhongViewModel> LoaiPhongs { get; set; } = new();
+    }
+
+    public class DatPhongCheckInLoaiPhongViewModel
+    {
+        public string MaLoaiPhong { get; set; } = string.Empty;
+        public string TenLoaiPhong { get; set; } = string.Empty;
+        public int SoLuongCanChon { get; set; }
+        public List<string> SelectedPhongIds { get; set; } = new();
+        public List<PhongTrongItemViewModel> PhongTrong { get; set; } = new();
+    }
 }

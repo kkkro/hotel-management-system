@@ -10,6 +10,10 @@ namespace WebKhachSan.Controllers
     {
         private readonly QuanLyKhachSanContext _context;
         private readonly ILogger<PhongController> _logger;
+        private static readonly string[] TrangThaiPhongTrongVariants = { "Trống", "Tr?ng", "Trá»‘ng" };
+        private static readonly string[] TrangThaiCoKhachVariants = { "Có khách", "CÃ³ khÃ¡ch", "Co khach" };
+        private static readonly string[] TrangThaiBaoTriVariants = { "Bảo trì", "B?o trì", "Báº£o trÃ¬" };
+        private static readonly string[] TrangThaiDaDatVariants = { "Đã đặt", "Ðã d?t", "ÄÃ£ Ä‘áº·t" };
 
         private static readonly string[] TrangThaiPhongList =
         {
@@ -35,7 +39,8 @@ namespace WebKhachSan.Controllers
 
             if (!string.IsNullOrEmpty(trangThai))
             {
-                phongs = phongs.Where(p => p.TrangThai == trangThai);
+                var trangThaiVariants = GetTrangThaiVariants(trangThai);
+                phongs = phongs.Where(p => p.TrangThai != null && trangThaiVariants.Contains(p.TrangThai));
             }
 
             var result = await phongs.OrderBy(p => p.SoPhong).ToListAsync();
@@ -218,7 +223,7 @@ namespace WebKhachSan.Controllers
         public async Task<JsonResult> GetPhongByLoaiPhong(string maLoaiPhong)
         {
             var phongs = await _context.Phongs
-                .Where(p => p.MaLoaiPhong == maLoaiPhong && p.TrangThai == "Tr\u1ed1ng")
+                .Where(p => p.MaLoaiPhong == maLoaiPhong && p.TrangThai != null && TrangThaiPhongTrongVariants.Contains(p.TrangThai))
                 .Select(p => new { id = p.MaPhong, text = p.SoPhong })
                 .ToListAsync();
 
@@ -270,6 +275,18 @@ namespace WebKhachSan.Controllers
         private async Task<bool> PhongExists(string id)
         {
             return await _context.Phongs.AnyAsync(e => e.MaPhong == id);
+        }
+
+        private static string[] GetTrangThaiVariants(string trangThai)
+        {
+            return trangThai switch
+            {
+                "Trống" or "Tr?ng" or "Trá»‘ng" => TrangThaiPhongTrongVariants,
+                "Có khách" or "CÃ³ khÃ¡ch" or "Co khach" => TrangThaiCoKhachVariants,
+                "Bảo trì" or "B?o trì" or "Báº£o trÃ¬" => TrangThaiBaoTriVariants,
+                "Đã đặt" or "Ðã d?t" or "ÄÃ£ Ä‘áº·t" => TrangThaiDaDatVariants,
+                _ => new[] { trangThai }
+            };
         }
     }
 }

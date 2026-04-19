@@ -1,0 +1,123 @@
+@model DatPhongCheckInViewModel
+
+<form id="checkInForm" method="post" asp-controller="DatPhong" asp-action="CheckIn" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="MaDatPhong" value="@Model.MaDatPhong" />
+    <input type="hidden" name="MaKhachHang" value="@Model.MaKhachHang" />
+    <input type="hidden" name="TenKhachHang" value="@Model.TenKhachHang" />
+    <input type="hidden" name="DienThoai" value="@Model.DienThoai" />
+    <input type="hidden" name="NgayNhan" value="@Model.NgayNhan?.ToString("yyyy-MM-dd")" />
+    <input type="hidden" name="NgayTra" value="@Model.NgayTra?.ToString("yyyy-MM-dd")" />
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+    <div class="mb-3">
+        <h5 class="mb-1">Checkin Don Dat @Model.MaDatPhong</h5>
+        <p class="text-muted mb-0">
+            Khach hang: <strong>@Model.TenKhachHang</strong>
+            @if (!string.IsNullOrWhiteSpace(Model.DienThoai))
+            {
+                <span>- @Model.DienThoai</span>
+            }
+        </p>
+        <p class="text-muted mb-0">
+            Ngay nhan: <strong>@(Model.NgayNhan?.ToString("dd/MM/yyyy") ?? "-")</strong>
+            <span class="mx-2">|</span>
+            Ngay tra: <strong>@(Model.NgayTra?.ToString("dd/MM/yyyy") ?? "Chua xac dinh")</strong>
+        </p>
+    </div>
+
+    @for (int i = 0; i < Model.LoaiPhongs.Count; i++)
+    {
+        var loaiPhong = Model.LoaiPhongs[i];
+        <input type="hidden" name="LoaiPhongs[@i].MaLoaiPhong" value="@loaiPhong.MaLoaiPhong" />
+        <input type="hidden" name="LoaiPhongs[@i].TenLoaiPhong" value="@loaiPhong.TenLoaiPhong" />
+        <input type="hidden" name="LoaiPhongs[@i].SoLuongCanChon" value="@loaiPhong.SoLuongCanChon" />
+
+        <div class="card mb-3 border-0 shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@loaiPhong.TenLoaiPhong</strong>
+                    <div class="small text-muted">Can chon dung @loaiPhong.SoLuongCanChon phong</div>
+                </div>
+                <span class="badge bg-primary" id="selected-count-@i">0/@loaiPhong.SoLuongCanChon</span>
+            </div>
+            <div class="card-body">
+                @if (loaiPhong.PhongTrong.Any())
+                {
+                    <div class="row g-2">
+                        @foreach (var phong in loaiPhong.PhongTrong)
+                        {
+                            var isChecked = loaiPhong.SelectedPhongIds.Contains(phong.MaPhong);
+                            <div class="col-md-6">
+                                <label class="checkin-room-item border rounded p-3 w-100 @(isChecked ? "selected" : string.Empty)">
+                                    <input type="checkbox"
+                                           class="form-check-input me-2 js-checkin-room"
+                                           name="LoaiPhongs[@i].SelectedPhongIds"
+                                           value="@phong.MaPhong"
+                                           data-group-index="@i"
+                                           data-max="@loaiPhong.SoLuongCanChon"
+                                           @(isChecked ? "checked" : null) />
+                                    <span class="fw-semibold">@phong.SoPhong</span>
+                                    <span class="badge bg-info ms-2">@loaiPhong.TenLoaiPhong</span>
+                                    <small class="d-block text-muted mt-1">@phong.MaPhong</small>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning mb-0">
+                        Khong con phong trong cho loai phong nay.
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</form>
+
+<style>
+    .checkin-room-item {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #fff;
+    }
+
+    .checkin-room-item.selected {
+        border-color: #0d6efd !important;
+        background: #e7f1ff;
+    }
+</style>
+
+<script>
+    function updateCheckInSelectedCount(groupIndex) {
+        var checkboxes = $('.js-checkin-room[data-group-index="' + groupIndex + '"]');
+        var checkedCount = checkboxes.filter(':checked').length;
+        var max = checkboxes.first().data('max') || 0;
+        $('#selected-count-' + groupIndex).text(checkedCount + '/' + max);
+
+        checkboxes.each(function () {
+            $(this).closest('.checkin-room-item').toggleClass('selected', $(this).is(':checked'));
+        });
+    }
+
+    $(document).ready(function () {
+        $('.js-checkin-room').on('change', function () {
+            var groupIndex = $(this).data('group-index');
+            var max = parseInt($(this).data('max'), 10) || 0;
+            var checked = $('.js-checkin-room[data-group-index="' + groupIndex + '"]:checked');
+
+            if (checked.length > max) {
+                $(this).prop('checked', false);
+                toastr.warning('Chi duoc chon toi da ' + max + ' phong cho nhom nay.');
+            }
+
+            updateCheckInSelectedCount(groupIndex);
+        });
+
+        $('.js-checkin-room').each(function () {
+            updateCheckInSelectedCount($(this).data('group-index'));
+        });
+    });
+</script>
