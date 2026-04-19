@@ -90,7 +90,11 @@ namespace WebKhachSan.ViewModels
         public string? DienThoai { get; set; }
         public string? DiaChi { get; set; }
         public string? Cccd { get; set; }
+        [Required(ErrorMessage = "Vui long chon ngay nhan phong.")]
+        [DataType(DataType.Date)]
         public DateTime? NgayNhan { get; set; }
+        [DataType(DataType.Date)]
+        public DateTime? NgayTra { get; set; }
         public List<PhongTrongItemViewModel> Phongs { get; set; } = new();
         public List<string> SelectedPhongs { get; set; } = new();
     }
@@ -102,6 +106,7 @@ namespace WebKhachSan.ViewModels
         public string? DienThoai { get; set; }
         public string? DiaChi { get; set; }
         public DateTime NgayNhan { get; set; }
+        public DateTime? NgayTra { get; set; }
         public List<PhongChonViewModel> PhongsChon { get; set; } = new();
         public double TongTien { get; set; }
     }

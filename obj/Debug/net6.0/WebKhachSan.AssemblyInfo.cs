@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WebKhachSan")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4e9faef669c3b7184cd64ac75c54fb7cc0bffdb7")]
 [assembly: System.Reflection.AssemblyProductAttribute("WebKhachSan")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WebKhachSan")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

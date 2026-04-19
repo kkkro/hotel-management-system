@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using WebKhachSan.Models;
-using System.Text.Json.Serialization;
 
 namespace WebKhachSan.Controllers
 {
@@ -18,11 +17,10 @@ namespace WebKhachSan.Controllers
             _logger = logger;
         }
 
-        // GET: DatPhong
         public async Task<IActionResult> Index()
         {
             _logger.LogInformation("Người dùng {0} xem danh sách đặt phòng", User.Identity?.Name);
-            
+
             var datPhongs = await _context.DatPhongs
                 .Include(dp => dp.MaKhachHangNavigation)
                 .Include(dp => dp.CtdatPhongs)
@@ -33,7 +31,6 @@ namespace WebKhachSan.Controllers
             return View(datPhongs);
         }
 
-        // GET: DatPhong/Details/5
         public async Task<IActionResult> Details(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -55,7 +52,6 @@ namespace WebKhachSan.Controllers
             return View(datPhong);
         }
 
-        // GET: DatPhong/Create - Modern Form
         public async Task<IActionResult> CreateModern()
         {
             _logger.LogInformation("Người dùng {0} mở form đặt phòng", User.Identity?.Name);
@@ -65,7 +61,7 @@ namespace WebKhachSan.Controllers
                 .Select(lp => new { lp.MaLoaiPhong, lp.TenLoaiPhong })
                 .ToListAsync();
 
-            var selectListItems = loaiPhongs
+            ViewBag.LoaiPhong = loaiPhongs
                 .Select(lp => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                 {
                     Value = lp.MaLoaiPhong,
@@ -73,11 +69,9 @@ namespace WebKhachSan.Controllers
                 })
                 .ToList();
 
-            ViewBag.LoaiPhong = selectListItems;
             return View("CreateModern");
         }
 
-        // GET: DatPhong/Create - Classic Form
         public async Task<IActionResult> Create()
         {
             _logger.LogInformation("Người dùng {0} mở form đặt phòng cơ bản", User.Identity?.Name);
@@ -87,7 +81,7 @@ namespace WebKhachSan.Controllers
                 .Select(lp => new { lp.MaLoaiPhong, lp.TenLoaiPhong })
                 .ToListAsync();
 
-            var selectListItems = loaiPhongs
+            ViewBag.LoaiPhong = loaiPhongs
                 .Select(lp => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
                 {
                     Value = lp.MaLoaiPhong,
@@ -95,18 +89,15 @@ namespace WebKhachSan.Controllers
                 })
                 .ToList();
 
-            ViewBag.LoaiPhong = selectListItems;
             return View();
         }
 
-        // POST: DatPhong/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("MaDatPhong,MaKhachHang,NgayDat,NgayNhanDuKien,NgayTraDuKien,MaLoaiPhong,SoLuong,GhiChu")] DatPhong datPhong, string MaLoaiPhong, int SoLuong, string GhiChu)
         {
             try
             {
-                // Validate customer
                 var khachHang = await _context.KhachHangs.FindAsync(datPhong.MaKhachHang);
                 if (khachHang == null)
                 {
@@ -115,7 +106,6 @@ namespace WebKhachSan.Controllers
                     return RedirectToAction(nameof(CreateModern));
                 }
 
-                // Validate room type
                 var loaiPhong = await _context.LoaiPhongs.FindAsync(MaLoaiPhong);
                 if (loaiPhong == null)
                 {
@@ -124,7 +114,6 @@ namespace WebKhachSan.Controllers
                     return RedirectToAction(nameof(CreateModern));
                 }
 
-                // Generate booking ID
                 datPhong.MaDatPhong = GenerateMaDatPhong();
                 datPhong.NgayDat = DateTime.Now;
                 datPhong.TrangThai = "Chờ xác nhận";
@@ -132,7 +121,6 @@ namespace WebKhachSan.Controllers
                 _context.Add(datPhong);
                 await _context.SaveChangesAsync();
 
-                // Add booking details
                 var giaDatPhong = await _context.GiaPhongs
                     .Where(gp => gp.MaLoaiPhong == MaLoaiPhong && gp.NgayBatDau <= DateTime.Now && gp.NgayKetThuc >= DateTime.Now)
                     .FirstOrDefaultAsync();
@@ -142,19 +130,18 @@ namespace WebKhachSan.Controllers
 
                 for (int i = 0; i < SoLuong; i++)
                 {
-                    var ctdatPhong = new CtdatPhong
+                    _context.Add(new CtdatPhong
                     {
                         MaDatPhong = datPhong.MaDatPhong,
                         MaLoaiPhong = MaLoaiPhong,
                         SoLuong = 1,
                         GiaTamTinh = giaTinh * soNgay
-                    };
-                    _context.Add(ctdatPhong);
+                    });
                 }
 
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Người dùng {0} tạo đơn đặt phòng: {1} cho khách {2}", 
+                _logger.LogInformation("Người dùng {0} tạo đơn đặt phòng: {1} cho khách {2}",
                     User.Identity?.Name, datPhong.MaDatPhong, khachHang.TenKhachHang);
 
                 return RedirectToAction(nameof(Details), new { id = datPhong.MaDatPhong });
@@ -167,57 +154,89 @@ namespace WebKhachSan.Controllers
             }
         }
 
-        // POST: DatPhong/CreateFromPublic - API endpoint for public booking
         [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> CreateFromPublic([FromBody] PublicBookingRequest request)
         {
             try
             {
-                if (string.IsNullOrEmpty(request.MaKhachHang) || string.IsNullOrEmpty(request.MaLoaiPhong))
+                if (string.IsNullOrEmpty(request.MaKhachHang) || request.SelectedRooms == null || !request.SelectedRooms.Any())
                 {
                     return Json(new { success = false, message = "Thông tin không hợp lệ" });
                 }
 
-                // Create booking
+                DateTime ngayNhan = DateTime.Parse(request.NgayNhanDuKien);
+                DateTime ngayTra = DateTime.Parse(request.NgayTraDuKien);
+                if (ngayTra <= ngayNhan)
+                {
+                    return Json(new { success = false, message = "Ngày trả phòng phải sau ngày nhận phòng" });
+                }
+
+                var selectedRoomIds = request.SelectedRooms
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .Distinct()
+                    .ToList();
+
+                if (!selectedRoomIds.Any())
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn ít nhất một phòng" });
+                }
+
+                var bookedRoomIds = await GetBookedRoomIdsAsync(ngayNhan, ngayTra);
+
+                var selectedRooms = await _context.Phongs
+                    .Include(p => p.MaLoaiPhongNavigation)
+                    .Where(p => selectedRoomIds.Contains(p.MaPhong) && !bookedRoomIds.Contains(p.MaPhong))
+                    .ToListAsync();
+
+                if (selectedRooms.Count != selectedRoomIds.Count)
+                {
+                    return Json(new { success = false, message = "Một hoặc nhiều phòng đã không còn trống" });
+                }
+
                 var datPhong = new DatPhong
                 {
                     MaDatPhong = GenerateMaDatPhong(),
                     MaKhachHang = request.MaKhachHang,
                     NgayDat = DateTime.Now,
-                    NgayNhanDuKien = DateTime.Parse(request.NgayNhanDuKien),
-                    NgayTraDuKien = DateTime.Parse(request.NgayTraDuKien),
+                    NgayNhanDuKien = ngayNhan,
+                    NgayTraDuKien = ngayTra,
                     TrangThai = "Chờ xác nhận"
                 };
 
                 _context.Add(datPhong);
 
-                // Add booking details
-                var giaDatPhong = await _context.GiaPhongs
-                    .Where(gp => gp.MaLoaiPhong == request.MaLoaiPhong && gp.NgayBatDau <= DateTime.Now && gp.NgayKetThuc >= DateTime.Now)
-                    .FirstOrDefaultAsync();
+                int soNgay = Math.Max(1, (ngayTra.Date - ngayNhan.Date).Days);
+                var roomGroups = selectedRooms
+                    .GroupBy(p => p.MaLoaiPhong)
+                    .Where(g => !string.IsNullOrEmpty(g.Key))
+                    .ToList();
 
-                double giaTinh = giaDatPhong?.Gia ?? 0.0;
-                int soNgay = (int)(((datPhong.NgayTraDuKien ?? DateTime.Now) - (datPhong.NgayNhanDuKien ?? DateTime.Now)).TotalDays);
-
-                for (int i = 0; i < request.SoLuong; i++)
+                foreach (var roomGroup in roomGroups)
                 {
-                    var ctdatPhong = new CtdatPhong
+                    string maLoaiPhong = roomGroup.Key!;
+                    double gia = await GetCurrentPriceValueAsync(maLoaiPhong);
+
+                    _context.Add(new CtdatPhong
                     {
                         MaDatPhong = datPhong.MaDatPhong,
-                        MaLoaiPhong = request.MaLoaiPhong,
-                        SoLuong = 1,
-                        GiaTamTinh = giaTinh * soNgay
-                    };
-                    _context.Add(ctdatPhong);
+                        MaLoaiPhong = maLoaiPhong,
+                        SoLuong = roomGroup.Count(),
+                        GiaTamTinh = gia * soNgay * roomGroup.Count()
+                    });
                 }
 
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Khách hàng công khai {0} tạo đơn đặt phòng: {1}", 
+                _logger.LogInformation("Khách hàng công khai {0} tạo đơn đặt phòng: {1}",
                     request.MaKhachHang, datPhong.MaDatPhong);
 
-                return Json(new { success = true, maDatPhong = datPhong.MaDatPhong });
+                return Json(new
+                {
+                    success = true,
+                    maDatPhong = datPhong.MaDatPhong,
+                    soPhongDaChon = selectedRooms.Count
+                });
             }
             catch (Exception ex)
             {
@@ -226,7 +245,6 @@ namespace WebKhachSan.Controllers
             }
         }
 
-        // GET: DatPhong/Edit/5
         public async Task<IActionResult> Edit(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -243,7 +261,6 @@ namespace WebKhachSan.Controllers
             return View(datPhong);
         }
 
-        // POST: DatPhong/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, [Bind("MaDatPhong,MaKhachHang,NgayDat,NgayNhanDuKien,NgayTraDuKien,TrangThai")] DatPhong datPhong)
@@ -259,9 +276,7 @@ namespace WebKhachSan.Controllers
                 {
                     _context.Update(datPhong);
                     await _context.SaveChangesAsync();
-                    
-                    _logger.LogInformation("Người dùng {0} cập nhật đơn đặt phòng: {1}", 
-                        User.Identity?.Name, datPhong.MaDatPhong);
+                    _logger.LogInformation("Người dùng {0} cập nhật đơn đặt phòng: {1}", User.Identity?.Name, datPhong.MaDatPhong);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -269,17 +284,16 @@ namespace WebKhachSan.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(datPhong);
         }
 
-        // GET: DatPhong/Delete/5
         public async Task<IActionResult> Delete(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -300,7 +314,33 @@ namespace WebKhachSan.Controllers
             return View(datPhong);
         }
 
-        // POST: DatPhong/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Confirm(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return NotFound();
+            }
+
+            var datPhong = await _context.DatPhongs.FindAsync(id);
+            if (datPhong == null)
+            {
+                return NotFound();
+            }
+
+            if (datPhong.TrangThai == "Chờ xác nhận")
+            {
+                datPhong.TrangThai = "Đã xác nhận";
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Người dùng {0} xác nhận đơn đặt phòng: {1}",
+                    User.Identity?.Name, datPhong.MaDatPhong);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -311,87 +351,121 @@ namespace WebKhachSan.Controllers
 
             if (datPhong != null)
             {
-                // Remove booking details
                 _context.CtdatPhongs.RemoveRange(datPhong.CtdatPhongs);
-                
-                // Remove booking
                 _context.DatPhongs.Remove(datPhong);
-                
                 await _context.SaveChangesAsync();
-                
-                _logger.LogInformation("Người dùng {0} xóa đơn đặt phòng: {1}", 
+
+                _logger.LogInformation("Người dùng {0} xóa đơn đặt phòng: {1}",
                     User.Identity?.Name, datPhong.MaDatPhong);
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        // API: Get Available Rooms
         [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> GetAvailableRooms([FromBody] RoomSearchRequest request)
         {
             try
             {
-                // Parse dates if they are strings
                 DateTime ngayNhan = request.NgayNhan;
                 DateTime ngayTra = request.NgayTra;
 
-                if (ngayNhan == default(DateTime) || ngayTra == default(DateTime))
+                if (ngayNhan == default || ngayTra == default)
                 {
                     return Json(new { success = false, message = "Thông tin không hợp lệ" });
                 }
 
-                if (string.IsNullOrEmpty(request.MaLoaiPhong))
+                if (ngayTra <= ngayNhan)
                 {
-                    return Json(new { success = false, message = "Loại phòng không hợp lệ" });
+                    return Json(new { success = false, message = "Ngày trả phòng phải sau ngày nhận phòng" });
                 }
 
-                // Get room type info
-                var loaiPhong = await _context.LoaiPhongs.FindAsync(request.MaLoaiPhong);
-                if (loaiPhong == null)
-                {
-                    return Json(new { success = false, message = "Loại phòng không tồn tại" });
-                }
+                var bookedRoomIds = await GetBookedRoomIdsAsync(ngayNhan, ngayTra);
 
-                // Get booked rooms in the date range
-                var bookedRoomIds = await _context.ThuePhongs
-                    .Include(tp => tp.CtthuePhongs)
-                    .Where(tp => 
-                        tp.NgayNhan < ngayTra && 
-                        tp.NgayTra > ngayNhan
-                    )
-                    .SelectMany(tp => tp.CtthuePhongs)
-                    .Where(ct => ct.MaPhongNavigation.MaLoaiPhong == request.MaLoaiPhong)
-                    .Select(ct => ct.MaPhong)
-                    .Distinct()
-                    .ToListAsync();
-
-                // Get available rooms
                 var availableRooms = await _context.Phongs
-                    .Where(p => p.MaLoaiPhong == request.MaLoaiPhong && !bookedRoomIds.Contains(p.MaPhong))
-                    .Select(p => new { p.MaPhong, p.MaLoaiPhong, TenLoaiPhong = p.MaLoaiPhongNavigation.TenLoaiPhong })
+                    .Include(p => p.MaLoaiPhongNavigation)
+                    .Where(p => !bookedRoomIds.Contains(p.MaPhong))
+                    .Where(p => p.TrangThai == null || p.TrangThai == "Trống")
+                    .Select(p => new AvailableRoomDto
+                    {
+                        MaPhong = p.MaPhong,
+                        SoPhong = p.SoPhong,
+                        MaLoaiPhong = p.MaLoaiPhong,
+                        TenLoaiPhong = p.MaLoaiPhongNavigation != null ? p.MaLoaiPhongNavigation.TenLoaiPhong : "Khác",
+                        SoNguoiToiDa = p.MaLoaiPhongNavigation != null ? p.MaLoaiPhongNavigation.SoNguoiToiDa : null
+                    })
                     .ToListAsync();
 
-                // Get pricing
-                var giaPhong = await _context.GiaPhongs
-                    .Where(gp => gp.MaLoaiPhong == request.MaLoaiPhong && 
-                                 gp.NgayBatDau <= DateTime.Now && 
-                                 gp.NgayKetThuc >= DateTime.Now)
-                    .FirstOrDefaultAsync();
+                int soNgay = Math.Max(1, (ngayTra.Date - ngayNhan.Date).Days);
 
-                double gia = giaPhong?.Gia ?? 0.0;
-                int soNgay = (ngayTra.Date - ngayNhan.Date).Days;
-                if (soNgay <= 0) soNgay = 1;
+                if (!string.IsNullOrWhiteSpace(request.MaLoaiPhong))
+                {
+                    var roomsByType = availableRooms
+                        .Where(room => room.MaLoaiPhong == request.MaLoaiPhong)
+                        .Select(room => new
+                        {
+                            maphong = room.MaPhong,
+                            maPhong = room.MaPhong,
+                            maLoaiPhong = room.MaLoaiPhong,
+                            tenLoaiPhong = room.TenLoaiPhong
+                        })
+                        .ToList();
+
+                    double gia = await GetCurrentPriceValueAsync(request.MaLoaiPhong);
+
+                    return Json(new
+                    {
+                        success = roomsByType.Count > 0,
+                        phongTrongs = roomsByType,
+                        gia = gia,
+                        soNgay = soNgay,
+                        giaTinh = gia * soNgay,
+                        message = roomsByType.Count > 0 ? $"Có {roomsByType.Count} phòng trống" : "Không có phòng trống"
+                    });
+                }
+
+                var priceLookup = await _context.GiaPhongs
+                    .Where(gp => gp.NgayBatDau <= DateTime.Now && gp.NgayKetThuc >= DateTime.Now)
+                    .GroupBy(gp => gp.MaLoaiPhong)
+                    .Select(g => new
+                    {
+                        MaLoaiPhong = g.Key,
+                        Gia = g.OrderByDescending(x => x.NgayBatDau).Select(x => x.Gia).FirstOrDefault()
+                    })
+                    .ToDictionaryAsync(x => x.MaLoaiPhong, x => x.Gia ?? 0.0);
+
+                var groupedRooms = availableRooms
+                    .GroupBy(room => new { room.MaLoaiPhong, room.TenLoaiPhong, room.SoNguoiToiDa })
+                    .Select(group => new
+                    {
+                        maLoaiPhong = group.Key.MaLoaiPhong,
+                        tenLoaiPhong = group.Key.TenLoaiPhong,
+                        soNguoiToiDa = group.Key.SoNguoiToiDa,
+                        soLuongPhongTrong = group.Count(),
+                        gia = group.Key.MaLoaiPhong != null && priceLookup.ContainsKey(group.Key.MaLoaiPhong)
+                            ? priceLookup[group.Key.MaLoaiPhong]
+                            : 0.0,
+                        phongTrongs = group
+                            .OrderBy(room => room.SoPhong)
+                            .Select(room => new
+                            {
+                                maPhong = room.MaPhong,
+                                soPhong = room.SoPhong,
+                                maLoaiPhong = room.MaLoaiPhong
+                            })
+                            .ToList()
+                    })
+                    .OrderBy(group => group.tenLoaiPhong)
+                    .ToList();
 
                 return Json(new
                 {
-                    success = availableRooms.Count > 0,
-                    phongTrongs = availableRooms,
-                    gia = gia,
+                    success = groupedRooms.Count > 0,
+                    nhomPhongTrongs = groupedRooms,
                     soNgay = soNgay,
-                    giaTinh = gia * soNgay,
-                    message = availableRooms.Count > 0 ? $"Có {availableRooms.Count} phòng trống" : "Không có phòng trống"
+                    tongSoPhongTrong = availableRooms.Count,
+                    message = groupedRooms.Count > 0 ? $"Có {availableRooms.Count} phòng trống" : "Không có phòng trống"
                 });
             }
             catch (Exception ex)
@@ -401,7 +475,31 @@ namespace WebKhachSan.Controllers
             }
         }
 
-        // Private methods
+        private async Task<List<string>> GetBookedRoomIdsAsync(DateTime ngayNhan, DateTime ngayTra)
+        {
+            return await _context.ThuePhongs
+                .Include(tp => tp.CtthuePhongs)
+                .Where(tp => tp.NgayNhan < ngayTra && tp.NgayTra > ngayNhan)
+                .SelectMany(tp => tp.CtthuePhongs)
+                .Select(ct => ct.MaPhong)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        private async Task<double> GetCurrentPriceValueAsync(string? maLoaiPhong)
+        {
+            if (string.IsNullOrWhiteSpace(maLoaiPhong))
+            {
+                return 0.0;
+            }
+
+            return await _context.GiaPhongs
+                .Where(gp => gp.MaLoaiPhong == maLoaiPhong && gp.NgayBatDau <= DateTime.Now && gp.NgayKetThuc >= DateTime.Now)
+                .OrderByDescending(gp => gp.NgayBatDau)
+                .Select(gp => gp.Gia ?? 0.0)
+                .FirstOrDefaultAsync();
+        }
+
         private bool DatPhongExists(string id)
         {
             return _context.DatPhongs.Any(e => e.MaDatPhong == id);
@@ -417,23 +515,30 @@ namespace WebKhachSan.Controllers
             int number = int.Parse(lastId.Substring(2)) + 1;
             return "DP" + number.ToString("D6");
         }
+
+        private sealed class AvailableRoomDto
+        {
+            public string MaPhong { get; set; } = null!;
+            public string? SoPhong { get; set; }
+            public string? MaLoaiPhong { get; set; }
+            public string? TenLoaiPhong { get; set; }
+            public int? SoNguoiToiDa { get; set; }
+        }
     }
 
-    // Helper classes
     public class RoomSearchRequest
     {
-        public string MaLoaiPhong { get; set; }
+        public string? MaLoaiPhong { get; set; }
         public DateTime NgayNhan { get; set; }
         public DateTime NgayTra { get; set; }
     }
 
     public class PublicBookingRequest
     {
-        public string MaKhachHang { get; set; }
-        public string MaLoaiPhong { get; set; }
-        public string NgayNhanDuKien { get; set; }
-        public string NgayTraDuKien { get; set; }
-        public int SoLuong { get; set; }
-        public string GhiChu { get; set; }
+        public string MaKhachHang { get; set; } = string.Empty;
+        public string NgayNhanDuKien { get; set; } = string.Empty;
+        public string NgayTraDuKien { get; set; } = string.Empty;
+        public string GhiChu { get; set; } = string.Empty;
+        public List<string> SelectedRooms { get; set; } = new();
     }
 }

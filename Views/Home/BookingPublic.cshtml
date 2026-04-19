@@ -7,290 +7,528 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Aura Hospitality - Đặt Phòng Trực Tuyến</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aura Hospitality - Dat Phong Truc Tuyen</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <style>
         * { font-family: 'Inter', sans-serif; }
         h1, h2, h3, h4, h5, h6 { font-family: 'Manrope', sans-serif; }
+
         :root {
-            --primary: #00236f;
-            --primary-container: #1e3a8a;
-            --secondary: #006c49;
-            --surface: #f8f9ff;
-            --surface-container: #e6eeff;
-            --on-surface: #0d1c2e;
-            --on-surface-variant: #444651;
-            --outline: #757682;
+            --primary: #7a2400;
+            --primary-dark: #5b1b00;
+            --accent: #9d3500;
+            --surface: #f7f2ee;
+            --card: #ffffff;
+            --text: #28140c;
+            --muted: #76645a;
+            --border: #ead9cf;
+            --soft: #fbf6f2;
         }
-        
+
         body {
-            background-color: var(--surface);
-            color: var(--on-surface);
+            background: linear-gradient(180deg, #f8f4f0 0%, #f4ede7 100%);
+            color: var(--text);
         }
-        
+
         .navbar-custom {
-            background: rgba(255, 255, 255, 0.95) !important;
+            background: rgba(255, 250, 247, 0.94) !important;
             backdrop-filter: blur(12px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 12px rgba(61, 29, 9, 0.06);
         }
-        
+
         .hero-section {
-            height: 500px;
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+            min-height: 440px;
+            background: linear-gradient(rgba(49, 20, 5, 0.38), rgba(49, 20, 5, 0.48));
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
         }
-        
+
         .hero-section::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA3IoAKZqC38pocLoSl3CVb310mBiPt7raaUI5k4UoX8eopjjvLrzOGy_BkR7Tk2cewMjR6wUvnDz0aiPXqK527AWp98TnH62veN7uvn_4SGs3rUAyh6-QCl9-i38_I3yL0UtiBW4p2f3z3qBNLFdpTBNRPe9vjsxkDuP1HgvZ8xvcGWe0W_5JX2qpIDXXDOPEHJwTX6W-t27iiiU-83kf6CKBjn3jftu5R7mQpNebosOT0YUQcYuIRXsyFP9-6feJz_h9IqQ6PIlU');
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(255, 210, 160, 0.18), transparent 30%),
+                url('https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1400&q=80');
             background-size: cover;
             background-position: center;
-            z-index: 0;
-            filter: brightness(0.7);
+            filter: saturate(0.9);
         }
-        
+
         .hero-content {
             position: relative;
-            z-index: 10;
+            z-index: 1;
             color: white;
             text-align: center;
+            padding: 1rem;
+            max-width: 820px;
         }
-        
+
         .hero-content h1 {
-            font-size: 3rem;
+            font-size: 3.2rem;
             font-weight: 800;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
-        
+
+        .hero-content p {
+            font-size: 1.1rem;
+            opacity: 0.92;
+        }
+
         .search-card {
-            background: white;
-            border-radius: 1.25rem;
-            box-shadow: 0 20px 25px -5px rgba(64, 89, 170, 0.1);
-            padding: 2.5rem;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(234, 217, 207, 0.9);
+            border-radius: 24px;
+            box-shadow: 0 24px 48px rgba(61, 29, 9, 0.12);
+            padding: 2rem;
             margin-top: -4rem;
             position: relative;
-            z-index: 20;
+            z-index: 10;
         }
-        
-        .search-input-group label {
-            font-size: 0.75rem;
+
+        .search-label,
+        .form-group-custom label {
+            font-size: 0.78rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--outline);
-            display: block;
+            letter-spacing: 0.06em;
+            color: var(--muted);
             margin-bottom: 0.5rem;
+            display: block;
         }
-        
+
         .search-input {
             display: flex;
             align-items: center;
-            background: var(--surface-container);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: none;
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 0.95rem 1rem;
         }
-        
-        .search-input input, .search-input select {
-            background: transparent !important;
-            border: none !important;
-            flex: 1;
-            font-weight: 500;
-            color: var(--on-surface);
-        }
-        
-        .search-input input:focus, .search-input select:focus {
-            outline: none !important;
-            box-shadow: none !important;
-        }
-        
-        .search-btn {
-            background: linear-gradient(135deg, var(--primary), var(--primary-container));
-            color: white;
-            border: none;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        
-        .search-btn:hover {
-            opacity: 0.9;
-        }
-        
-        .room-card {
-            background: white;
-            border-radius: 1rem;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .room-card:hover {
-            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
-            transform: translateY(-4px);
-        }
-        
-        .room-image {
-            height: 200px;
-            overflow: hidden;
-        }
-        
-        .room-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-        
-        .room-card:hover .room-image img {
-            transform: scale(1.08);
-        }
-        
-        .room-content {
-            padding: 1.5rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .room-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .room-price {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: var(--secondary);
-            margin-bottom: 1rem;
-        }
-        
-        .room-btn {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid var(--primary);
-            color: var(--primary);
+
+        .search-input input,
+        .form-group-custom input,
+        .form-group-custom textarea {
             background: transparent;
-            border-radius: 0.5rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: auto;
-        }
-        
-        .room-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .modal-body {
-            padding: 2.5rem;
-        }
-        
-        .form-group-custom label {
-            font-weight: 600;
-            color: var(--primary);
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        
-        .form-group-custom input, .form-group-custom select, .form-group-custom textarea {
+            border: none;
+            outline: none;
             width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--surface-container);
-            border-radius: 0.5rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .search-btn,
+        .primary-btn,
+        .ghost-btn {
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            transition: 0.2s ease;
+        }
+
+        .search-btn,
+        .primary-btn {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 1rem 1.4rem;
+            width: 100%;
+        }
+
+        .ghost-btn {
+            background: #fff3ea;
+            color: var(--primary);
+            padding: 0.9rem 1.25rem;
+            border: 1px solid #efcfbc;
+        }
+
+        .search-btn:hover,
+        .primary-btn:hover,
+        .ghost-btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+
+        .section-head h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 0.4rem;
+        }
+
+        .section-head p {
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .results-toolbar {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 12px 24px rgba(61, 29, 9, 0.07);
+        }
+
+        .toolbar-stat {
+            color: var(--muted);
             font-size: 0.95rem;
         }
-        
-        .form-group-custom input:focus, .form-group-custom select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(0, 35, 111, 0.1);
+
+        .toolbar-stat strong {
+            color: var(--primary-dark);
+            font-size: 1.05rem;
+        }
+
+        .room-type-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.25rem;
+            box-shadow: 0 10px 30px rgba(61, 29, 9, 0.08);
+        }
+
+        .room-type-grid {
+            display: grid;
+            grid-template-columns: 304px 1fr 250px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .room-image-box {
+            position: relative;
+        }
+
+        .room-image-main {
+            width: 100%;
+            height: 204px;
+            object-fit: cover;
+            border-radius: 16px;
+            display: block;
+        }
+
+        .room-image-count {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            background: rgba(22, 12, 7, 0.66);
+            color: white;
+            border-radius: 999px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .room-meta-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 0.85rem 0 0.75rem;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .meta-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: var(--primary-dark);
+        }
+
+        .meta-inline .material-icons {
+            font-size: 1rem;
+        }
+
+        .room-facts {
+            display: grid;
+            gap: 0.45rem;
+            color: var(--text);
+        }
+
+        .room-fact {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 1rem;
+        }
+
+        .room-fact .material-icons {
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .room-type-name {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 0.85rem;
+        }
+
+        .policy-block h5,
+        .promo-block h5 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 0.65rem;
+        }
+
+        .policy-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.55rem;
+            margin-bottom: 0.45rem;
+            color: var(--text);
+        }
+
+        .policy-item .material-icons {
+            font-size: 1rem;
+            color: var(--primary);
+            margin-top: 0.08rem;
+        }
+
+        .promo-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: #5967b8;
+            color: white;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 0.45rem 0.85rem;
+        }
+
+        .room-type-right {
+            border-left: 1px solid var(--border);
+            padding-left: 1.5rem;
+        }
+
+        .room-price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1.05;
+        }
+
+        .room-price small {
+            font-size: 1rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .room-stock {
+            color: var(--primary-dark);
+            font-size: 1.2rem;
+            margin: 0.5rem 0 1.25rem;
+        }
+
+        .qty-box {
+            display: grid;
+            grid-template-columns: 44px 1fr 44px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .qty-btn {
+            border: none;
+            background: #fffaf6;
+            color: var(--primary);
+            font-size: 1.5rem;
+            line-height: 1;
+            padding: 0.65rem 0;
+        }
+
+        .qty-value {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            background: white;
+        }
+
+        .room-actions {
+            display: grid;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            font-weight: 800;
+        }
+
+        .select-btn {
+            background: #8d2d00;
+            color: white;
+        }
+
+        .book-btn {
+            background: linear-gradient(135deg, #8d2d00, #b13b00);
+            color: white;
+        }
+
+        .selected-badge {
+            margin-top: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #e8f4ea;
+            color: #25673d;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: 0.45rem 0.8rem;
+        }
+
+        .selection-summary {
+            background: linear-gradient(135deg, #3a1608, #6e2404);
+            color: white;
+            border-radius: 18px;
+            padding: 1.25rem;
+            position: sticky;
+            bottom: 1rem;
+            box-shadow: 0 18px 36px rgba(61, 29, 9, 0.22);
+        }
+
+        .summary-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.55rem;
+        }
+
+        .selection-room-list {
+            margin-top: 0.85rem;
+            font-size: 0.92rem;
+            color: rgba(255,255,255,0.82);
+        }
+
+        .selected-room-pill {
+            display: inline-flex;
+            align-items: center;
+            margin: 0 0.35rem 0.35rem 0;
+            padding: 0.42rem 0.75rem;
+            border-radius: 999px;
+            background: #fff0e5;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .loading,
+        .empty-state {
+            text-align: center;
+            padding: 2.75rem 1rem;
+            color: var(--muted);
+        }
+
+        .booking-breakdown {
+            background: var(--soft);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+        }
+
+        .booking-breakdown .line {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .booking-breakdown .line:last-child {
+            margin-bottom: 0;
+        }
+
+        @@media (max-width: 1199px) {
+            .room-type-grid {
+                grid-template-columns: 280px 1fr;
+            }
+
+            .room-type-right {
+                border-left: none;
+                padding-left: 0;
+                padding-top: 1rem;
+                border-top: 1px solid var(--border);
+                grid-column: 1 / -1;
+            }
+        }
+
+        @@media (max-width: 767px) {
+            .hero-content h1 {
+                font-size: 2.2rem;
+            }
+
+            .search-card {
+                padding: 1.25rem;
+                margin-top: -2.5rem;
+            }
+
+            .room-type-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .room-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .room-type-name {
+                font-size: 1.45rem;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light navbar-custom sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#" style="color: var(--primary); font-size: 1.5rem;">✨ Aura</a>
+            <a class="navbar-brand fw-bold" href="#" style="color: var(--primary-dark); font-size: 1.5rem;">Aura</a>
             <div class="ms-auto">
-                <a href="/Account/Login" class="btn btn-sm" style="background: linear-gradient(135deg, var(--primary), var(--primary-container)); color: white; font-weight: 700;">
-                    Quản Lý Đặt Phòng
+                <a href="/Account/Login" class="btn btn-sm" style="background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; font-weight: 700;">
+                    Quan Ly Dat Phong
                 </a>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <section class="hero-section">
         <div class="hero-content">
-            <h1>Đặt Phòng Tại Aura Hospitality</h1>
-            <p class="fs-5 opacity-90">Khám phá kỳ nghỉ tuyệt vời cùng chúng tôi</p>
+            <h1>Chon Ngay, Xem Loai Phong, Dat Nhanh</h1>
+            <p>Sau khi loc ngay luu tru, he thong se hien cac loai phong con trong theo dung khoang thoi gian ban chon.</p>
         </div>
     </section>
 
-    <!-- Search Section -->
     <section class="py-5" style="padding-top: 2rem;">
         <div class="container">
             <div class="search-card">
-                <h5 style="font-weight: 700; color: var(--primary); margin-bottom: 2rem;">🔍 TÌM PHÒNG TRỐNG</h5>
-                <div class="row g-4">
-                    <div class="col-12 col-md-3">
-                        <div class="form-group-custom">
-                            <label>Ngày Nhận Phòng</label>
-                            <div class="search-input">
-                                <span class="material-icons" style="margin-right: 0.75rem;">calendar_today</span>
-                                <input type="date" id="ngayNhan" value="2026-04-15"/>
-                            </div>
+                <div class="row g-4 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label class="search-label">Ngay Nhan Phong</label>
+                        <div class="search-input">
+                            <span class="material-icons me-2">calendar_today</span>
+                            <input type="date" id="ngayNhan" />
                         </div>
                     </div>
-                    <div class="col-12 col-md-3">
-                        <div class="form-group-custom">
-                            <label>Ngày Trả Phòng</label>
-                            <div class="search-input">
-                                <span class="material-icons" style="margin-right: 0.75rem;">calendar_month</span>
-                                <input type="date" id="ngayTra" value="2026-04-18"/>
-                            </div>
+                    <div class="col-12 col-md-4">
+                        <label class="search-label">Ngay Tra Phong</label>
+                        <div class="search-input">
+                            <span class="material-icons me-2">calendar_month</span>
+                            <input type="date" id="ngayTra" />
                         </div>
                     </div>
-                    <div class="col-12 col-md-3">
-                        <div class="form-group-custom">
-                            <label>Loại Phòng</label>
-                            <div class="search-input">
-                                <span class="material-icons" style="margin-right: 0.75rem;">hotel</span>
-                                <select id="maLoaiPhong">
-                                    <option value="">-- Chọn Loại Phòng --</option>
-                                    @foreach (var loai in Model)
-                                    {
-                                        <option value="@loai.MaLoaiPhong">@loai.TenLoaiPhong</option>
-                                    }
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-3 d-flex align-items-end">
-                        <button class="search-btn" id="btnTim" onclick="timPhongTrong()">
-                            <span class="material-icons align-middle" style="margin-right: 0.5rem;">search</span>
-                            TÌM PHÒNG
+                    <div class="col-12 col-md-4">
+                        <button class="search-btn" type="button" onclick="timPhongTrong()">
+                            <span class="material-icons align-middle me-1">search</span>
+                            Tim Phong Trong
                         </button>
                     </div>
                 </div>
@@ -298,91 +536,114 @@
         </div>
     </section>
 
-    <!-- Results Section -->
-    <section class="py-5">
+    <section class="pb-5">
         <div class="container">
-            <h2 style="font-size: 2rem; font-weight: 800; color: var(--primary); margin-bottom: 2rem;">📍 Phòng Trống Có Sẵn</h2>
-
-            <div class="loading" id="loading" style="display: none; text-align: center; padding: 2rem;">
-                <div class="spinner-border" role="status"></div>
-                <p class="mt-3">Đang tìm phòng trống...</p>
+            <div class="section-head mb-4">
+                <h2>Danh Sach Loai Phong Con Trong</h2>
+                <p>Moi dong ket qua la mot loai phong, hien gia, so phong con lai va so luong ban muon dat.</p>
             </div>
 
-            <div id="roomResults" class="row g-4"></div>
-            
-            <div class="no-results" id="noResults" style="display: none; text-align: center; padding: 2rem; color: var(--outline);">
-                <p style="font-size: 1.125rem; margin-bottom: 1rem;">❌ Không tìm thấy phòng trống</p>
-                <p>Vui lòng chọn ngày khác</p>
+            <div class="results-toolbar" id="resultsToolbar" style="display: none;">
+                <div class="row g-3 align-items-center">
+                    <div class="col-12 col-md-8 d-flex flex-wrap gap-4">
+                        <div class="toolbar-stat"><strong id="tongNhomPhong">0</strong> loai phong</div>
+                        <div class="toolbar-stat"><strong id="tongPhongTrong">0</strong> phong trong</div>
+                        <div class="toolbar-stat"><strong id="tongDem">0</strong> dem</div>
+                    </div>
+                    <div class="col-12 col-md-4 text-md-end">
+                        <button type="button" class="primary-btn" id="btnMoDatPhong" onclick="openBookingForm()" disabled>Dat cac phong da chon</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="loading" id="loading" style="display: none;">
+                <div class="spinner-border" role="status"></div>
+                <p class="mt-3 mb-0">Dang tim danh sach loai phong trong...</p>
+            </div>
+
+            <div id="roomResults" class="d-grid gap-4"></div>
+
+            <div class="selection-summary mt-4" id="selectionSummary" style="display: none;">
+                <div class="summary-line">
+                    <span>Phong da chon</span>
+                    <strong id="selectedCount">0</strong>
+                </div>
+                <div class="summary-line">
+                    <span>Tam tinh</span>
+                    <strong id="selectedTotal">0 VND</strong>
+                </div>
+                <div class="selection-room-list" id="selectedRoomList">Chua chon phong nao</div>
+            </div>
+
+            <div class="empty-state" id="noResults" style="display: none;">
+                <p style="font-size: 1.15rem; margin-bottom: 0.5rem;">Khong tim thay loai phong phu hop</p>
+                <p class="mb-0">Vui long thay doi ngay nhan hoac ngay tra.</p>
             </div>
         </div>
     </section>
 
-    <!-- Booking Modal -->
     <div class="modal fade" id="bookingModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
-                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), var(--primary-container)); color: white;">
-                    <h5 class="modal-title fw-bold">📋 Đặt Phòng</h5>
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), var(--accent)); color: white;">
+                    <h5 class="modal-title fw-bold">Xac Nhan Dat Phong</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" style="padding: 2.5rem;">
-                    <div style="background: #e3f2fd; border: 1px solid #90caf9; color: #01579b; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
-                        <strong>📌 Lưu ý:</strong> Vui lòng điền đầy đủ thông tin
+                <div class="modal-body" style="padding: 2rem;">
+                    <div style="background: #fff3ea; border: 1px solid #efcfbc; color: var(--primary-dark); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                        Dien thong tin khach hang va kiem tra lai danh sach phong da chon truoc khi gui yeu cau.
                     </div>
 
                     <form id="bookingForm">
-                        <input type="hidden" id="hiddenMaLoaiPhong" value=""/>
-                        <input type="hidden" id="hiddenNgayNhan" value=""/>
-                        <input type="hidden" id="hiddenNgayTra" value=""/>
-                        <input type="hidden" id="hiddenGia" value=""/>
+                        <input type="hidden" id="hiddenNgayNhan" value="" />
+                        <input type="hidden" id="hiddenNgayTra" value="" />
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <p style="color: var(--outline); font-size: 0.875rem; margin-bottom: 0.25rem;">Loại Phòng</p>
-                                <p style="font-weight: 700; color: var(--primary); font-size: 1.125rem;" id="displayLoaiPhong"></p>
-                            </div>
-                            <div class="col-md-6">
-                                <p style="color: var(--outline); font-size: 0.875rem; margin-bottom: 0.25rem;">Giá (VND/đêm)</p>
-                                <p style="font-weight: 700; color: var(--secondary); font-size: 1.125rem;" id="displayGia"></p>
-                            </div>
+                        <div class="mb-4">
+                            <h6 style="font-weight: 800; color: var(--primary-dark); margin-bottom: 0.8rem;">Phong da chon</h6>
+                            <div id="selectedRoomsPreview"></div>
                         </div>
 
-                        <hr/>
-                        <h6 style="font-weight: 700; color: var(--primary); margin-bottom: 1.5rem;">👤 Thông Tin Khách Hàng</h6>
+                        <hr />
 
-                        <div style="margin-bottom: 1.5rem;" class="form-group-custom">
-                            <label>Họ và Tên <span style="color: red;">*</span></label>
-                            <input type="text" id="tenKhachHang" placeholder="Nhập họ và tên" required/>
+                        <h6 style="font-weight: 800; color: var(--primary-dark); margin-bottom: 1rem;">Thong tin khach hang</h6>
+
+                        <div style="margin-bottom: 1rem;" class="form-group-custom">
+                            <label>Ho va Ten <span style="color: red;">*</span></label>
+                            <input type="text" id="tenKhachHang" placeholder="Nhap ho va ten" required />
                         </div>
 
-                        <div style="margin-bottom: 1.5rem;" class="form-group-custom">
-                            <label>Số Điện Thoại <span style="color: red;">*</span></label>
-                            <input type="tel" id="dienThoai" placeholder="Nhập số điện thoại" required/>
+                        <div style="margin-bottom: 1rem;" class="form-group-custom">
+                            <label>So Dien Thoai <span style="color: red;">*</span></label>
+                            <input type="tel" id="dienThoai" placeholder="Nhap so dien thoai" required />
                         </div>
 
-                        <div style="margin-bottom: 1.5rem;" class="form-group-custom">
-                            <label>Địa Chỉ <span style="color: red;">*</span></label>
-                            <input type="text" id="diaChi" placeholder="Nhập địa chỉ" required/>
+                        <div style="margin-bottom: 1rem;" class="form-group-custom">
+                            <label>Dia Chi <span style="color: red;">*</span></label>
+                            <input type="text" id="diaChi" placeholder="Nhap dia chi" required />
                         </div>
 
-                        <div style="background: var(--surface); padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
-                                <span>Số đêm:</span>
+                        <div style="margin-bottom: 1rem;" class="form-group-custom">
+                            <label>Ghi Chu</label>
+                            <textarea id="ghiChu" rows="3" placeholder="Yeu cau them neu co"></textarea>
+                        </div>
+
+                        <div class="booking-breakdown mb-4">
+                            <div class="line">
+                                <span>So dem</span>
                                 <strong id="calcNights">0</strong>
                             </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
-                                <span>Giá/đêm:</span>
-                                <strong id="calcGia">0 VND</strong>
+                            <div class="line">
+                                <span>So phong</span>
+                                <strong id="calcRooms">0</strong>
                             </div>
-                            <hr style="margin: 1rem 0;"/>
-                            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.125rem;">
-                                <span>Tổng Cộng:</span>
-                                <strong style="color: var(--primary);" id="calcTotal">0 VND</strong>
+                            <div class="line">
+                                <span>Tam tinh</span>
+                                <strong id="calcTotal">0 VND</strong>
                             </div>
                         </div>
 
-                        <button type="submit" class="w-100 btn" style="background: linear-gradient(135deg, var(--primary), var(--primary-container)); border: none; color: white; font-weight: 700; padding: 0.75rem; border-radius: 0.5rem; cursor: pointer;">
-                            ✅ Hoàn Thành Đặt Phòng
+                        <button type="submit" class="w-100 btn" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: white; font-weight: 800; padding: 0.95rem; border-radius: 14px;">
+                            Hoan Thanh Dat Phong
                         </button>
                     </form>
                 </div>
@@ -390,16 +651,45 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="bg-dark text-white py-4 mt-5">
         <div class="container text-center">
-            <p style="margin: 0; font-size: 0.875rem;">© 2026 Aura Hospitality | 📞 +84 24 3456 7890</p>
+            <p style="margin: 0; font-size: 0.875rem;">© 2026 Aura Hospitality | +84 24 3456 7890</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const bookingModal = new bootstrap.Modal(document.getElementById('bookingModal'));
+        let searchResultState = null;
+        let selectedRooms = [];
+        let roomTypeSelections = {};
+
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString('vi-VN') + ' VND';
+        }
+
+        function getRoomTypeImage(typeName) {
+            const lower = (typeName || '').toLowerCase();
+            if (lower.includes('suite') || lower.includes('premier') || lower.includes('loft')) {
+                return 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80';
+            }
+            if (lower.includes('deluxe')) {
+                return 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=900&q=80';
+            }
+            if (lower.includes('family')) {
+                return 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=900&q=80';
+            }
+            return 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80';
+        }
+
+        function setDefaultDates() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(today.getDate() + 1);
+
+            document.getElementById('ngayNhan').value = today.toISOString().split('T')[0];
+            document.getElementById('ngayTra').value = tomorrow.toISOString().split('T')[0];
+        }
 
         async function readJson(response) {
             const text = await response.text();
@@ -409,74 +699,225 @@
             return text ? JSON.parse(text) : {};
         }
 
+        function resetSelections() {
+            selectedRooms = [];
+            roomTypeSelections = {};
+            updateSelectionSummary();
+        }
+
         function timPhongTrong() {
             const ngayNhan = document.getElementById('ngayNhan').value;
             const ngayTra = document.getElementById('ngayTra').value;
-            const maLoaiPhong = document.getElementById('maLoaiPhong').value;
 
-            if (!ngayNhan || !ngayTra || !maLoaiPhong) {
-                alert('Vui lòng chọn đầy đủ thông tin tìm kiếm');
+            if (!ngayNhan || !ngayTra) {
+                alert('Vui long chon day du ngay nhan va ngay tra phong');
                 return;
             }
 
+            if (new Date(ngayTra) <= new Date(ngayNhan)) {
+                alert('Ngay tra phong phai sau ngay nhan phong');
+                return;
+            }
+
+            resetSelections();
             document.getElementById('loading').style.display = 'block';
             document.getElementById('roomResults').innerHTML = '';
             document.getElementById('noResults').style.display = 'none';
+            document.getElementById('resultsToolbar').style.display = 'none';
 
             fetch('/DatPhong/GetAvailableRooms', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ maLoaiPhong: maLoaiPhong, ngayNhan: ngayNhan, ngayTra: ngayTra })
+                body: JSON.stringify({ ngayNhan: ngayNhan, ngayTra: ngayTra })
             })
             .then(readJson)
             .then(data => {
                 document.getElementById('loading').style.display = 'none';
-                if (data.success && data.phongTrongs.length > 0) {
-                    let html = '';
-                    data.phongTrongs.forEach(room => {
-                        html += `<div class="col-12 col-md-6 col-lg-4">
-                            <div class="room-card">
-                                <div class="room-image">
-                                    <img src="https://via.placeholder.com/400x200?text=${room.tenLoaiPhong}" alt="${room.tenLoaiPhong}"/>
-                                </div>
-                                <div class="room-content">
-                                    <h5 class="room-title">${room.tenLoaiPhong}</h5>
-                                    <p style="color: var(--on-surface-variant); margin-bottom: 0.5rem;">Phòng: <strong>${room.maPhong}</strong></p>
-                                    <p class="room-price">${(data.gia).toLocaleString('vi-VN')} VND/đêm</p>
-                                    <button type="button" class="room-btn" onclick="openBookingForm('${room.tenLoaiPhong}', '${room.maPhong}', '${maLoaiPhong}', ${data.gia}, '${ngayNhan}', '${ngayTra}')">
-                                        Đặt Ngay
-                                    </button>
-                                </div>
-                            </div>
-                        </div>`;
-                    });
-                    document.getElementById('roomResults').innerHTML = html;
-                } else {
+
+                if (!data.success || !data.nhomPhongTrongs || data.nhomPhongTrongs.length === 0) {
+                    searchResultState = null;
                     document.getElementById('noResults').style.display = 'block';
+                    return;
                 }
+
+                searchResultState = data;
+                renderRoomGroups(data);
             })
-            .catch(e => {
+            .catch(error => {
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('noResults').style.display = 'block';
-                console.error('Lỗi:', e);
+                console.error('Loi:', error);
             });
         }
 
-        function openBookingForm(tenLoaiPhong, maPhong, maLoaiPhong, gia, ngayNhan, ngayTra) {
-            document.getElementById('displayLoaiPhong').textContent = tenLoaiPhong;
-            document.getElementById('displayGia').textContent = gia.toLocaleString('vi-VN') + ' VND';
-            
-            document.getElementById('hiddenMaLoaiPhong').value = maLoaiPhong;
+        function renderRoomGroups(data) {
+            const results = document.getElementById('roomResults');
+            const toolbar = document.getElementById('resultsToolbar');
+
+            document.getElementById('tongNhomPhong').textContent = data.nhomPhongTrongs.length;
+            document.getElementById('tongPhongTrong').textContent = data.tongSoPhongTrong;
+            document.getElementById('tongDem').textContent = data.soNgay;
+
+            const html = data.nhomPhongTrongs.map((group, index) => {
+                const maxAdults = group.soNguoiToiDa || 2;
+                const maxChildren = maxAdults > 1 ? 1 : 0;
+                const quantity = roomTypeSelections[group.maLoaiPhong || `group-${index}`] || 1;
+                const image = getRoomTypeImage(group.tenLoaiPhong);
+                const selectedCount = getSelectedRoomsByType(group.maLoaiPhong).length;
+
+                return `
+                    <div class="room-type-card">
+                        <div class="room-type-name">${group.tenLoaiPhong}</div>
+                        <div class="room-type-grid">
+                            <div class="room-image-box">
+                                <img class="room-image-main" src="${image}" alt="${group.tenLoaiPhong}" />
+                                <div class="room-image-count">1/${Math.max(1, group.soLuongPhongTrong)}</div>
+                                <div class="room-meta-strip">
+                                    <span class="meta-inline"><span class="material-icons">person</span>x ${maxAdults}</span>
+                                    <span class="meta-inline"><span class="material-icons">escalator_warning</span>x ${maxChildren}</span>
+                                    <span class="meta-inline"><span class="material-icons">sentiment_satisfied</span>x 0</span>
+                                </div>
+                                <div class="room-facts">
+                                    <div class="room-fact"><span class="material-icons">straighten</span>${28 + (maxAdults * 6)} m²</div>
+                                    <div class="room-fact"><span class="material-icons">bed</span>California king</div>
+                                    <div class="room-fact"><span class="material-icons">location_city</span>Huong thanh pho</div>
+                                    <div class="room-fact"><span class="material-icons">more_horiz</span>Xem them</div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="room-meta-strip" style="margin-top: 0;">
+                                    <span class="meta-inline"><span class="material-icons">person</span>x ${maxAdults}</span>
+                                    <span class="meta-inline"><span class="material-icons">escalator_warning</span>x ${maxChildren}</span>
+                                    <span class="meta-inline"><span class="material-icons">sentiment_satisfied</span>x 0</span>
+                                </div>
+
+                                <div class="policy-block mt-2">
+                                    <h5>Chinh sach thanh toan & huy dat phong:</h5>
+                                    <div class="policy-item">
+                                        <span class="material-icons">receipt_long</span>
+                                        <span>Thanh toan 100% gia tri dat phong.</span>
+                                    </div>
+                                    <div class="policy-item">
+                                        <span class="material-icons">cancel</span>
+                                        <span>Huy dat phong se tinh phi 100% gia tri dat phong.</span>
+                                    </div>
+                                </div>
+
+                                <div class="promo-block mt-3">
+                                    <h5>Khuyen mai va giam gia khac:</h5>
+                                    <span class="promo-chip"><span class="material-icons">percent</span>Uu Dai Cong Tac</span>
+                                </div>
+                            </div>
+
+                            <div class="room-type-right">
+                                <div class="room-price">${Number(group.gia || 0).toLocaleString('vi-VN')} ₫ <small>(1 Đêm)</small></div>
+                                <div class="room-stock">Con ${group.soLuongPhongTrong} phong</div>
+
+                                <div class="qty-box">
+                                    <button type="button" class="qty-btn" onclick="changeQuantity('${group.maLoaiPhong || `group-${index}`}', -1, ${group.soLuongPhongTrong})">−</button>
+                                    <div class="qty-value" id="qty-${group.maLoaiPhong || `group-${index}`}">${quantity}</div>
+                                    <button type="button" class="qty-btn" onclick="changeQuantity('${group.maLoaiPhong || `group-${index}`}', 1, ${group.soLuongPhongTrong})">+</button>
+                                </div>
+
+                                <div class="room-actions">
+                                    <button type="button" class="action-btn select-btn" onclick="selectRoomType('${group.maLoaiPhong || ''}', ${index}, false)">Chon</button>
+                                    <button type="button" class="action-btn book-btn" onclick="selectRoomType('${group.maLoaiPhong || ''}', ${index}, true)">Dat ngay</button>
+                                </div>
+
+                                ${selectedCount > 0 ? `<div class="selected-badge"><span class="material-icons">task_alt</span>Da chon ${selectedCount} phong</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            results.innerHTML = html;
+            toolbar.style.display = 'block';
+        }
+
+        function getSelectedRoomsByType(maLoaiPhong) {
+            return selectedRooms.filter(room => room.maLoaiPhong === maLoaiPhong);
+        }
+
+        function changeQuantity(key, delta, max) {
+            const current = roomTypeSelections[key] || 1;
+            const next = Math.min(max, Math.max(1, current + delta));
+            roomTypeSelections[key] = next;
+
+            const element = document.getElementById(`qty-${key}`);
+            if (element) {
+                element.textContent = next;
+            }
+        }
+
+        function selectRoomType(maLoaiPhong, index, openModalAfterSelect) {
+            if (!searchResultState) {
+                return;
+            }
+
+            const group = searchResultState.nhomPhongTrongs[index];
+            if (!group) {
+                return;
+            }
+
+            const key = maLoaiPhong || `group-${index}`;
+            const quantity = roomTypeSelections[key] || 1;
+            const selectedFromType = getSelectedRoomsByType(group.maLoaiPhong);
+            const otherSelections = selectedRooms.filter(room => room.maLoaiPhong !== group.maLoaiPhong);
+            const roomsToTake = (group.phongTrongs || []).slice(0, quantity).map(room => ({
+                maPhong: room.maPhong,
+                soPhong: room.soPhong || room.maPhong,
+                tenLoaiPhong: group.tenLoaiPhong,
+                maLoaiPhong: group.maLoaiPhong,
+                gia: Number(group.gia || 0)
+            }));
+
+            selectedRooms = otherSelections.concat(roomsToTake);
+            updateSelectionSummary();
+            renderRoomGroups(searchResultState);
+
+            if (openModalAfterSelect) {
+                openBookingForm();
+            }
+        }
+
+        function updateSelectionSummary() {
+            const summary = document.getElementById('selectionSummary');
+            const button = document.getElementById('btnMoDatPhong');
+            const soDem = searchResultState?.soNgay || 0;
+            const total = selectedRooms.reduce((sum, room) => sum + (room.gia * soDem), 0);
+            const roomListText = selectedRooms.length > 0
+                ? selectedRooms.map(room => `${room.soPhong} (${room.tenLoaiPhong})`).join(', ')
+                : 'Chua chon phong nao';
+
+            summary.style.display = searchResultState ? 'block' : 'none';
+            document.getElementById('selectedCount').textContent = selectedRooms.length;
+            document.getElementById('selectedTotal').textContent = formatCurrency(total);
+            document.getElementById('selectedRoomList').textContent = roomListText;
+            button.disabled = selectedRooms.length === 0;
+        }
+
+        function openBookingForm() {
+            if (!searchResultState || selectedRooms.length === 0) {
+                alert('Vui long chon it nhat mot phong de dat');
+                return;
+            }
+
+            const ngayNhan = document.getElementById('ngayNhan').value;
+            const ngayTra = document.getElementById('ngayTra').value;
+            const soDem = searchResultState.soNgay || 0;
+            const total = selectedRooms.reduce((sum, room) => sum + (room.gia * soDem), 0);
+
             document.getElementById('hiddenNgayNhan').value = ngayNhan;
             document.getElementById('hiddenNgayTra').value = ngayTra;
-            document.getElementById('hiddenGia').value = gia;
+            document.getElementById('calcNights').textContent = soDem;
+            document.getElementById('calcRooms').textContent = selectedRooms.length;
+            document.getElementById('calcTotal').textContent = formatCurrency(total);
 
-            const nights = Math.ceil((new Date(ngayTra) - new Date(ngayNhan)) / (1000 * 60 * 60 * 24));
-            const total = gia * nights;
-
-            document.getElementById('calcGia').textContent = gia.toLocaleString('vi-VN') + ' VND';
-            document.getElementById('calcNights').textContent = nights;
-            document.getElementById('calcTotal').textContent = total.toLocaleString('vi-VN') + ' VND';
+            document.getElementById('selectedRoomsPreview').innerHTML = selectedRooms
+                .map(room => `<span class="selected-room-pill">${room.soPhong} - ${room.tenLoaiPhong}</span>`)
+                .join('');
 
             bookingModal.show();
         }
@@ -484,14 +925,18 @@
         document.getElementById('bookingForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const tenKhach = document.getElementById('tenKhachHang').value;
-            const sdt = document.getElementById('dienThoai').value;
-            const diaChi = document.getElementById('diaChi').value;
-            const maLoai = document.getElementById('hiddenMaLoaiPhong').value;
+            if (selectedRooms.length === 0) {
+                alert('Vui long chon phong truoc khi dat');
+                return;
+            }
+
+            const tenKhach = document.getElementById('tenKhachHang').value.trim();
+            const sdt = document.getElementById('dienThoai').value.trim();
+            const diaChi = document.getElementById('diaChi').value.trim();
+            const ghiChu = document.getElementById('ghiChu').value.trim();
             const ngayNhan = document.getElementById('hiddenNgayNhan').value;
             const ngayTra = document.getElementById('hiddenNgayTra').value;
 
-            // Tạo khách hàng (API JSON - public)
             fetch('/KhachHang/CreateCustomer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -499,37 +944,41 @@
             })
             .then(readJson)
             .then(cust => {
-                if (cust.success) {
-                    // Tạo đơn đặt phòng
-                    return fetch('/DatPhong/CreateFromPublic', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            maKhachHang: cust.maKhachHang,
-                            maLoaiPhong: maLoai,
-                            ngayNhanDuKien: ngayNhan,
-                            ngayTraDuKien: ngayTra,
-                            soLuong: 1,
-                            ghiChu: ''
-                        })
-                    });
-                } else throw new Error(cust.message);
+                if (!cust.success) {
+                    throw new Error(cust.message || 'Khong the tao khach hang');
+                }
+
+                return fetch('/DatPhong/CreateFromPublic', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        maKhachHang: cust.maKhachHang,
+                        ngayNhanDuKien: ngayNhan,
+                        ngayTraDuKien: ngayTra,
+                        ghiChu: ghiChu,
+                        selectedRooms: selectedRooms.map(room => room.maPhong)
+                    })
+                });
             })
             .then(readJson)
             .then(booking => {
-                if (booking.success) {
-                    alert('✅ Đặt phòng thành công!\n\nMã đơn: ' + booking.maDatPhong + '\n\nChúng tôi sẽ liên hệ trong 24 giờ để xác nhận.');
-                    bookingModal.hide();
-                    document.getElementById('bookingForm').reset();
-                } else {
-                    alert('❌ Lỗi: ' + (booking.message || 'Không thể tạo đơn'));
+                if (!booking.success) {
+                    throw new Error(booking.message || 'Khong the tao don dat phong');
                 }
+
+                alert(`Dat phong thanh cong!\n\nMa don: ${booking.maDatPhong}\nSo phong da chon: ${booking.soPhongDaChon}`);
+                bookingModal.hide();
+                document.getElementById('bookingForm').reset();
+                resetSelections();
+                timPhongTrong();
             })
-            .catch(e => {
-                console.error('Lỗi:', e);
-                alert('❌ Lỗi: ' + e.message);
+            .catch(error => {
+                console.error('Loi:', error);
+                alert('Loi: ' + error.message);
             });
         });
+
+        setDefaultDates();
     </script>
 </body>
 </html>

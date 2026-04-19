@@ -2,25 +2,25 @@
 
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
-    ViewData["Title"] = "Thuê phòng";
+    ViewData["Title"] = "Thue phong";
 }
 
 <div class="container-fluid py-4">
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <strong>Thành công!</strong> @TempData["Success"]
+            <strong>Thanh cong!</strong> @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-1 fw-bold">Phiếu thuê phòng</h2>
-            <p class="text-muted mb-0">Quản lý danh sách khách thuê offline tại quầy lễ tân.</p>
+            <h2 class="mb-1 fw-bold">Phieu thue phong</h2>
+            <p class="text-muted mb-0">Quan ly danh sach khach thue offline tai quay le tan.</p>
         </div>
         <button type="button" class="btn btn-primary js-thue-phong-moi">
-            <i class="bi bi-plus-circle"></i> Thuê phòng mới
+            <i class="bi bi-plus-circle"></i> Thue phong moi
         </button>
     </div>
 
@@ -29,14 +29,14 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-4">Mã thuê</th>
-                        <th>Khách hàng</th>
-                        <th>Phòng</th>
-                        <th>Ngày nhận</th>
-                        <th>Ngày trả</th>
-                        <th class="text-end">Giá thuê</th>
-                        <th class="text-center">Trạng thái</th>
-                        <th class="text-center">Thao tác</th>
+                        <th class="ps-4">Ma thue</th>
+                        <th>Khach hang</th>
+                        <th>Phong</th>
+                        <th>Ngay nhan</th>
+                        <th>Ngay tra</th>
+                        <th class="text-end">Gia thue</th>
+                        <th class="text-center">Trang thai</th>
+                        <th class="text-center">Thao tac</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -45,7 +45,18 @@
                         @foreach (var item in Model)
                         {
                             var chiTiet = item.CtthuePhongs.FirstOrDefault();
-                            var trangThai = item.NgayTra.HasValue ? "Đã trả" : "Đang thuê";
+                            var trangThai = string.IsNullOrWhiteSpace(item.TrangThai)
+                                ? (item.NgayTra.HasValue ? "Đã trả" : "Đang thuê")
+                                : item.TrangThai;
+                            var badgeClass = (trangThai ?? string.Empty).Trim() switch
+                            {
+                                "Dang thue" or "Đang thuê" => "bg-success",
+                                "Da tra" or "Đã trả" => "bg-secondary",
+                                _ => "bg-primary"
+                            };
+                            var isDangThue = (trangThai ?? string.Empty).Trim() == "Dang thue"
+                                || (trangThai ?? string.Empty).Trim() == "Đang thuê";
+
                             <tr>
                                 <td class="ps-4 fw-semibold text-primary">@item.MaThuePhong</td>
                                 <td>
@@ -57,16 +68,16 @@
                                     <small class="text-muted">@chiTiet?.MaPhongNavigation?.MaLoaiPhongNavigation?.TenLoaiPhong</small>
                                 </td>
                                 <td>@item.NgayNhan?.ToString("dd/MM/yyyy")</td>
-                                <td>@(item.NgayTra?.ToString("dd/MM/yyyy") ?? "Chưa trả")</td>
+                                <td>@(item.NgayTra?.ToString("dd/MM/yyyy") ?? "Chua tra")</td>
                                 <td class="text-end">@chiTiet?.GiaThueTaiThoiDiem?.ToString("N0")</td>
                                 <td class="text-center">
-                                    <span class="badge @(item.NgayTra.HasValue ? "bg-secondary" : "bg-success")">@trangThai</span>
+                                    <span class="badge @badgeClass">@trangThai</span>
                                 </td>
                                 <td class="text-center">
-                                    @if (!item.NgayTra.HasValue)
+                                    @if (isDangThue)
                                     {
                                         <button type="button" class="btn btn-sm btn-outline-danger js-tra-phong" data-id="@item.MaThuePhong">
-                                            <i class="bi bi-box-arrow-left"></i> Trả phòng
+                                            <i class="bi bi-box-arrow-left"></i> Tra phong
                                         </button>
                                     }
                                 </td>
@@ -78,7 +89,7 @@
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
                                 <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                                <p class="mt-3 mb-0">Chưa có phiếu thuê phòng nào.</p>
+                                <p class="mt-3 mb-0">Chua co phieu thue phong nao.</p>
                             </td>
                         </tr>
                     }
@@ -88,12 +99,11 @@
     </div>
 </div>
 
-<!-- Modal Thuê Phòng Mới -->
 <div class="modal fade" id="thuePhongModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Thuê Phòng Mới</h5>
+                <h5 class="modal-title">Thue Phong Moi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4" id="thuePhongModalBody">
@@ -104,20 +114,19 @@
     </div>
 </div>
 
-<!-- Modal Trả Phòng -->
 <div class="modal fade" id="traPhongModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Trả Phòng</h5>
+                <h5 class="modal-title">Tra Phong</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="traPhongModalBody">
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huy</button>
                 <button type="button" class="btn btn-danger" id="btnConfirmTraPhong">
-                    <i class="bi bi-check-circle"></i> Xác nhận trả phòng
+                    <i class="bi bi-check-circle"></i> Xac nhan tra phong
                 </button>
             </div>
         </div>
@@ -130,20 +139,18 @@
             var thuePhongModal;
             var traPhongModal;
 
-            // Mở modal thuê phòng mới - Bước 1
             $(document).on('click', '.js-thue-phong-moi', function () {
                 $.get('/ThuePhong/CreateStep1', function (html) {
                     $('#thuePhongModalBody').html(html);
                     $('#thuePhongModalFooter').html(
-                        '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>' +
-                        '<button type="button" class="btn btn-primary" id="btnStep1Next">Tiếp tục <i class="bi bi-arrow-right"></i></button>'
+                        '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huy</button>' +
+                        '<button type="button" class="btn btn-primary" id="btnStep1Next">Tiep tuc <i class="bi bi-arrow-right"></i></button>'
                     );
                     thuePhongModal = new bootstrap.Modal($('#thuePhongModal'));
                     thuePhongModal.show();
                 });
             });
 
-            // Tiếp tục bước 1 -> Bước 2
             $(document).on('click', '#btnStep1Next', function () {
                 var form = $('#createStep1Form');
                 var formData = form.serialize();
@@ -157,29 +164,27 @@
                         } else {
                             $('#thuePhongModalBody').html(html);
                             $('#thuePhongModalFooter').html(
-                                '<button type="button" class="btn btn-secondary" id="btnStep2Back"><i class="bi bi-arrow-left"></i> Quay lại</button>' +
-                                '<button type="button" class="btn btn-primary" id="btnStep2Next">Tiếp tục <i class="bi bi-arrow-right"></i></button>'
+                                '<button type="button" class="btn btn-secondary" id="btnStep2Back"><i class="bi bi-arrow-left"></i> Quay lai</button>' +
+                                '<button type="button" class="btn btn-primary" id="btnStep2Next">Tiep tuc <i class="bi bi-arrow-right"></i></button>'
                             );
                         }
                     },
                     error: function () {
-                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                        toastr.error('Co loi xay ra. Vui long thu lai.');
                     }
                 });
             });
 
-            // Quay lại bước 1
             $(document).on('click', '#btnStep2Back', function () {
                 $.get('/ThuePhong/CreateStep1', function (html) {
                     $('#thuePhongModalBody').html(html);
                     $('#thuePhongModalFooter').html(
-                        '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>' +
-                        '<button type="button" class="btn btn-primary" id="btnStep1Next">Tiếp tục <i class="bi bi-arrow-right"></i></button>'
+                        '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huy</button>' +
+                        '<button type="button" class="btn btn-primary" id="btnStep1Next">Tiep tuc <i class="bi bi-arrow-right"></i></button>'
                     );
                 });
             });
 
-            // Tiếp tục bước 2 -> Bước 3 (Xác nhận)
             $(document).on('click', '#btnStep2Next', function () {
                 var form = $('#createStep2Form');
                 var formData = form.serialize();
@@ -193,18 +198,17 @@
                         } else {
                             $('#thuePhongModalBody').html(html);
                             $('#thuePhongModalFooter').html(
-                                '<button type="button" class="btn btn-secondary" id="btnStep3Back"><i class="bi bi-arrow-left"></i> Quay lại</button>' +
-                                '<button type="button" class="btn btn-success" id="btnConfirmThue"><i class="bi bi-check-circle"></i> Xác nhận thuê</button>'
+                                '<button type="button" class="btn btn-secondary" id="btnStep3Back"><i class="bi bi-arrow-left"></i> Quay lai</button>' +
+                                '<button type="button" class="btn btn-success" id="btnConfirmThue"><i class="bi bi-check-circle"></i> Xac nhan thue</button>'
                             );
                         }
                     },
                     error: function () {
-                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                        toastr.error('Co loi xay ra. Vui long thu lai.');
                     }
                 });
             });
 
-            // Quay lại bước 2
             $(document).on('click', '#btnStep3Back', function () {
                 var form = $('#createConfirmForm');
                 var formData = form.serialize();
@@ -215,17 +219,16 @@
                     success: function (html) {
                         $('#thuePhongModalBody').html(html);
                         $('#thuePhongModalFooter').html(
-                            '<button type="button" class="btn btn-secondary" id="btnStep2Back"><i class="bi bi-arrow-left"></i> Quay lại</button>' +
-                            '<button type="button" class="btn btn-primary" id="btnStep2Next">Tiếp tục <i class="bi bi-arrow-right"></i></button>'
+                            '<button type="button" class="btn btn-secondary" id="btnStep2Back"><i class="bi bi-arrow-left"></i> Quay lai</button>' +
+                            '<button type="button" class="btn btn-primary" id="btnStep2Next">Tiep tuc <i class="bi bi-arrow-right"></i></button>'
                         );
                     },
                     error: function () {
-                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                        toastr.error('Co loi xay ra. Vui long thu lai.');
                     }
                 });
             });
 
-            // Xác nhận thuê phòng
             $(document).on('click', '#btnConfirmThue', function () {
                 var form = $('#createConfirmForm');
                 var formData = form.serialize();
@@ -245,12 +248,11 @@
                         }
                     },
                     error: function () {
-                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                        toastr.error('Co loi xay ra. Vui long thu lai.');
                     }
                 });
             });
 
-            // Mở modal trả phòng
             $(document).on('click', '.js-tra-phong', function () {
                 var id = $(this).data('id');
                 $.get('/ThuePhong/TraPhong', { id: id }, function (html) {
@@ -260,7 +262,6 @@
                 });
             });
 
-            // Xác nhận trả phòng
             $(document).on('click', '#btnConfirmTraPhong', function () {
                 var form = $('#traPhongForm');
                 var formData = form.serialize();
@@ -280,7 +281,7 @@
                         }
                     },
                     error: function () {
-                        toastr.error('Có lỗi xảy ra. Vui lòng thử lại.');
+                        toastr.error('Co loi xay ra. Vui long thu lai.');
                     }
                 });
             });

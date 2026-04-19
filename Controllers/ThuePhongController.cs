@@ -157,6 +157,7 @@ namespace WebKhachSan.Controllers
                 DiaChi = model.DiaChi,
                 Cccd = model.Cccd,
                 NgayNhan = DateTime.Today,
+                NgayTra = null,
                 Phongs = phongs
             };
 
@@ -170,6 +171,16 @@ namespace WebKhachSan.Controllers
             if (model.SelectedPhongs == null || !model.SelectedPhongs.Any())
             {
                 ModelState.AddModelError(string.Empty, "Vui long chon it nhat mot phong.");
+            }
+
+            if (!model.NgayNhan.HasValue)
+            {
+                ModelState.AddModelError(nameof(model.NgayNhan), "Vui long chon ngay nhan phong.");
+            }
+
+            if (model.NgayTra.HasValue && model.NgayNhan.HasValue && model.NgayTra.Value.Date < model.NgayNhan.Value.Date)
+            {
+                ModelState.AddModelError(nameof(model.NgayTra), "Ngay tra phong khong duoc nho hon ngay nhan phong.");
             }
 
             if (!ModelState.IsValid)
@@ -206,6 +217,7 @@ namespace WebKhachSan.Controllers
                 DienThoai = model.DienThoai,
                 DiaChi = model.DiaChi,
                 NgayNhan = model.NgayNhan ?? DateTime.Today,
+                NgayTra = model.NgayTra,
                 PhongsChon = phongsChon,
                 TongTien = phongsChon.Sum(p => p.GiaThue ?? 0)
             };
@@ -227,20 +239,32 @@ namespace WebKhachSan.Controllers
             try
             {
                 var khachHang = await ResolveCustomerAsync(model.Cccd, model.TenKhachHang, model.DienThoai, model.DiaChi);
+                var existingRentalIds = await _context.ThuePhongs
+                    .Select(tp => tp.MaThuePhong)
+                    .ToListAsync();
+                var nextRentalNumber = existingRentalIds
+                    .Select(id =>
+                    {
+                        var digits = new string((id ?? string.Empty).Skip(2).Where(char.IsDigit).ToArray());
+                        return int.TryParse(digits, out var number) ? number : 0;
+                    })
+                    .DefaultIfEmpty(0)
+                    .Max() + 1;
 
                 foreach (var phongChon in model.PhongsChon)
                 {
-                    var maThuePhong = await GenerateNextCodeAsync(_context.ThuePhongs.Select(tp => tp.MaThuePhong), "TP");
+                    var maThuePhong = $"TP{nextRentalNumber:D3}";
+                    nextRentalNumber++;
                     var gia = await GetCurrentPriceFromMaLoaiPhongAsync(phongChon.MaPhong);
 
                     var thuePhong = new ThuePhong
                     {
-                        MaThuePhong = maThuePhong,
-                        MaKhachHang = khachHang.MaKhachHang,
-                        TrangThai = "Dang thue",
-                        NgayNhan = model.NgayNhan,
-                        NgayTra = null
-                    };
+                    MaThuePhong = maThuePhong,
+                    MaKhachHang = khachHang.MaKhachHang,
+                    TrangThai = "Dang thue",
+                    NgayNhan = model.NgayNhan,
+                    NgayTra = model.NgayTra
+                };
 
                     var chiTiet = new CtthuePhong
                     {
