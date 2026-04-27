@@ -11,14 +11,14 @@ namespace WebKhachSan.Controllers
         private readonly QuanLyKhachSanContext _context;
         private readonly ILogger<PhongController> _logger;
         private static readonly string[] TrangThaiPhongTrongVariants = { "Trống", "Tr?ng", "Trá»‘ng" };
-        private static readonly string[] TrangThaiCoKhachVariants = { "Có khách", "CÃ³ khÃ¡ch", "Co khach" };
+        private static readonly string[] TrangThaiCoKhachVariants = { "Đang sử dụng", "Có khách", "CÃ³ khÃ¡ch", "Co khach" };
         private static readonly string[] TrangThaiBaoTriVariants = { "Bảo trì", "B?o trì", "Báº£o trÃ¬" };
         private static readonly string[] TrangThaiDaDatVariants = { "Đã đặt", "Ðã d?t", "ÄÃ£ Ä‘áº·t" };
 
         private static readonly string[] TrangThaiPhongList =
         {
             "Tr\u1ed1ng",
-            "C\u00f3 kh\u00e1ch",
+            "\u0110ang s\u1eed d\u1ee5ng",
             "B\u1ea3o tr\u00ec",
             "\u0110\u00e3 \u0111\u1eb7t"
         };
@@ -282,7 +282,7 @@ namespace WebKhachSan.Controllers
             return trangThai switch
             {
                 "Trống" or "Tr?ng" or "Trá»‘ng" => TrangThaiPhongTrongVariants,
-                "Có khách" or "CÃ³ khÃ¡ch" or "Co khach" => TrangThaiCoKhachVariants,
+                "Đang sử dụng" or "Có khách" or "CÃ³ khÃ¡ch" or "Co khach" => TrangThaiCoKhachVariants,
                 "Bảo trì" or "B?o trì" or "Báº£o trÃ¬" => TrangThaiBaoTriVariants,
                 "Đã đặt" or "Ðã d?t" or "ÄÃ£ Ä‘áº·t" => TrangThaiDaDatVariants,
                 _ => new[] { trangThai }

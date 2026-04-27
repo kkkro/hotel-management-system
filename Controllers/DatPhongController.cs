@@ -12,6 +12,12 @@ namespace WebKhachSan.Controllers
         private readonly QuanLyKhachSanContext _context;
         private readonly ILogger<DatPhongController> _logger;
         private static readonly string[] TrangThaiPhongTrongVariants = { "Trống", "Tr?ng", "Trá»‘ng" };
+        private static readonly string[] TrangThaiDatPhongChoNhanPhongVariants =
+        {
+            "Chưa nhận phòng",
+            "Chờ xác nhận",
+            "Đã xác nhận"
+        };
 
         public DatPhongController(QuanLyKhachSanContext context, ILogger<DatPhongController> logger)
         {
@@ -118,7 +124,7 @@ namespace WebKhachSan.Controllers
 
                 datPhong.MaDatPhong = GenerateMaDatPhong();
                 datPhong.NgayDat = DateTime.Now;
-                datPhong.TrangThai = "Chờ xác nhận";
+                datPhong.TrangThai = "Chưa nhận phòng";
 
                 _context.Add(datPhong);
                 await _context.SaveChangesAsync();
@@ -203,7 +209,7 @@ namespace WebKhachSan.Controllers
                     NgayDat = DateTime.Now,
                     NgayNhanDuKien = ngayNhan,
                     NgayTraDuKien = ngayTra,
-                    TrangThai = "Chờ xác nhận"
+                    TrangThai = "Chưa nhận phòng"
                 };
 
                 _context.Add(datPhong);
@@ -333,7 +339,7 @@ namespace WebKhachSan.Controllers
 
             if (datPhong.TrangThai == "Chờ xác nhận")
             {
-                datPhong.TrangThai = "Đã xác nhận";
+                datPhong.TrangThai = "Chưa nhận phòng";
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Người dùng {0} xác nhận đơn đặt phòng: {1}",
@@ -362,9 +368,9 @@ namespace WebKhachSan.Controllers
                 return Content("<div class='alert alert-danger mb-0'>Khong tim thay don dat phong.</div>", "text/html");
             }
 
-            if (datPhong.TrangThai != "Đã xác nhận")
+            if (!TrangThaiDatPhongChoNhanPhongVariants.Contains(datPhong.TrangThai ?? string.Empty))
             {
-                return Content("<div class='alert alert-warning mb-0'>Chi don da xac nhan moi co the checkin.</div>", "text/html");
+                return Content("<div class='alert alert-warning mb-0'>Chi don chua nhan phong moi co the checkin.</div>", "text/html");
             }
 
             var model = await BuildCheckInViewModelAsync(datPhong);
@@ -387,7 +393,7 @@ namespace WebKhachSan.Controllers
                 return Content("<div class='alert alert-danger mb-0'>Khong tim thay don dat phong.</div>", "text/html");
             }
 
-            if (datPhong.TrangThai != "Đã xác nhận")
+            if (!TrangThaiDatPhongChoNhanPhongVariants.Contains(datPhong.TrangThai ?? string.Empty))
             {
                 Response.StatusCode = 400;
                 return Content("<div class='alert alert-warning mb-0'>Don dat phong nay khong o trang thai co the checkin.</div>", "text/html");
@@ -476,7 +482,7 @@ namespace WebKhachSan.Controllers
                     {
                         MaThuePhong = maThuePhong,
                         MaKhachHang = datPhong.MaKhachHang,
-                        TrangThai = "Đang thuê",
+                        TrangThai = "Dang thue",
                         NgayNhan = datPhong.NgayNhanDuKien ?? DateTime.Today,
                         NgayTra = datPhong.NgayTraDuKien
                     });
@@ -488,10 +494,10 @@ namespace WebKhachSan.Controllers
                         GiaThueTaiThoiDiem = gia
                     });
 
-                    room.TrangThai = "Có khách";
+                    room.TrangThai = "Đang sử dụng";
                 }
 
-                datPhong.TrangThai = "Đã checkin";
+                datPhong.TrangThai = "Đã nhận phòng";
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();

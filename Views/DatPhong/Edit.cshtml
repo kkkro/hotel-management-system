@@ -2,7 +2,7 @@
 
 @{
     Layout = "_DashboardLayout";
-    ViewData["Title"] = "Chỉnh Sửa Đặt Phòng";
+    ViewData["Title"] = "Chinh Sua Dat Phong";
 }
 
 <style>
@@ -80,58 +80,56 @@
 </style>
 
 <div class="container-fluid py-4">
-    <!-- Header -->
     <div class="mb-4">
         <h1 class="h3 mb-0" style="color: var(--primary); font-weight: 800; font-family: 'Manrope';">
-            ✏️ Chỉnh Sửa Đặt Phòng @Model.MaDatPhong
+            Chinh Sua Dat Phong @Model.MaDatPhong
         </h1>
-        <p class="text-muted small mt-2">Cập nhật thông tin đặt phòng</p>
+        <p class="text-muted small mt-2">Cap nhat thong tin dat phong</p>
     </div>
 
     <div class="edit-container">
-        <!-- Original Info -->
         <div class="info-box">
-            <strong style="color: var(--primary);">Thông Tin Gốc:</strong><br/>
-            Mã ĐP: <strong>@Model.MaDatPhong</strong> | Khách: <strong>@Model.MaKhachHangNavigation?.TenKhachHang</strong> | Ngày đặt: <strong>@Model.NgayDat:dd/MM/yyyy</strong>
+            <strong style="color: var(--primary);">Thong Tin Goc:</strong><br />
+            Ma DP: <strong>@Model.MaDatPhong</strong> | Khach: <strong>@Model.MaKhachHangNavigation?.TenKhachHang</strong> | Ngay dat: <strong>@Model.NgayDat:dd/MM/yyyy</strong>
         </div>
 
         <form asp-action="Edit" method="post">
-            <input type="hidden" name="MaDatPhong" value="@Model.MaDatPhong"/>
+            <input type="hidden" name="MaDatPhong" value="@Model.MaDatPhong" />
 
             <div class="form-group">
-                <label class="form-label">Trạng Thái Đặt Phòng</label>
+                <label class="form-label">Trang Thai Dat Phong</label>
                 <select class="form-select" name="TrangThai" required>
-                    <option value="Chờ xác nhận" selected="@(Model.TrangThai == "Chờ xác nhận")">Chờ xác nhận</option>
-                    <option value="Đã xác nhận" selected="@(Model.TrangThai == "Đã xác nhận")">Đã xác nhận</option>
+                    <option value="Chưa nhận phòng" selected="@(Model.TrangThai == "Chưa nhận phòng" || Model.TrangThai == "Chờ xác nhận" || Model.TrangThai == "Đã xác nhận")">Chưa nhận phòng</option>
+                    <option value="Đã nhận phòng" selected="@(Model.TrangThai == "Đã nhận phòng" || Model.TrangThai == "Đã checkin")">Đã nhận phòng</option>
                     <option value="Đã hủy" selected="@(Model.TrangThai == "Đã hủy")">Đã hủy</option>
                     <option value="Hoàn thành" selected="@(Model.TrangThai == "Hoàn thành")">Hoàn thành</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Ngày Nhận Phòng (Dự Kiến)</label>
-                <input type="date" class="form-control" name="NgayNhanDuKien" value="@Model.NgayNhanDuKien:yyyy-MM-dd" required/>
+                <label class="form-label">Ngay Nhan Phong (Du Kien)</label>
+                <input type="date" class="form-control" name="NgayNhanDuKien" value="@Model.NgayNhanDuKien:yyyy-MM-dd" required />
             </div>
 
             <div class="form-group">
-                <label class="form-label">Ngày Trả Phòng (Dự Kiến)</label>
-                <input type="date" class="form-control" name="NgayTraDuKien" value="@Model.NgayTraDuKien:yyyy-MM-dd" required/>
+                <label class="form-label">Ngay Tra Phong (Du Kien)</label>
+                <input type="date" class="form-control" name="NgayTraDuKien" value="@Model.NgayTraDuKien:yyyy-MM-dd" required />
             </div>
 
             <div class="form-group">
-                <label class="form-label">Mã Khách Hàng</label>
-                <input type="text" class="form-control" name="MaKhachHang" value="@Model.MaKhachHang" readonly style="background: #f8f9ff; cursor: not-allowed;"/>
-                <small style="color: #757682; margin-top: 0.25rem; display: block;">Để thay đổi khách hàng, vui lòng xóa và tạo đơn mới</small>
+                <label class="form-label">Ma Khach Hang</label>
+                <input type="text" class="form-control" name="MaKhachHang" value="@Model.MaKhachHang" readonly style="background: #f8f9ff; cursor: not-allowed;" />
+                <small style="color: #757682; margin-top: 0.25rem; display: block;">De thay doi khach hang, vui long xoa va tao don moi</small>
             </div>
 
             <div style="display: flex; gap: 0.5rem; margin-top: 2rem;">
                 <button type="submit" class="btn-submit">
                     <span class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; font-size: 1.25rem;">save</span>
-                    Lưu Thay Đổi
+                    Luu Thay Doi
                 </button>
                 <a asp-action="Details" asp-route-id="@Model.MaDatPhong" class="btn-cancel" style="display: inline-flex; align-items: center;">
                     <span class="material-icons" style="margin-right: 0.5rem; font-size: 1.25rem;">close</span>
-                    Hủy
+                    Huy
                 </a>
             </div>
         </form>

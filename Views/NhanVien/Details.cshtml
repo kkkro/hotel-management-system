@@ -2,7 +2,7 @@
 
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
-    ViewData["Title"] = "Chi Tiết Nhân Viên";
+    ViewData["Title"] = "Chi Tiet Nhan Vien";
 }
 
 <div class="container-fluid py-4">
@@ -11,33 +11,33 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h1 class="h3 mb-0" style="color: var(--primary); font-weight: 800; font-family: 'Manrope';">
-                        👤 Chi Tiết Nhân Viên
+                        Chi Tiet Nhan Vien
                     </h1>
-                    <p class="text-muted small mt-2">Thông tin chi tiết: @Model.TenNhanVien</p>
+                    <p class="text-muted small mt-2">Thong tin chi tiet: @Model.TenNhanVien</p>
                 </div>
                 <a asp-action="Index" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Quay lại
+                    <i class="bi bi-arrow-left"></i> Quay lai
                 </a>
             </div>
 
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header" style="background: linear-gradient(135deg, #f8f9ff, #e6eeff); border-bottom: 2px solid #e6eeff;">
-                    <h5 style="color: #00236f; font-weight: 700; margin: 0;">Thông Tin Cơ Bản</h5>
+                    <h5 style="color: #00236f; font-weight: 700; margin: 0;">Thong Tin Co Ban</h5>
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-4">
                         <div class="col-12 col-md-6">
-                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Mã Nhân Viên</label>
+                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Ma Nhan Vien</label>
                             <div style="font-size: 1.25rem; font-weight: 700; color: #00236f;">@Model.MaNhanVien</div>
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Tên Nhân Viên</label>
+                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Ten Nhan Vien</label>
                             <div style="font-size: 1.25rem; font-weight: 700; color: #0d1c2e;">@Model.TenNhanVien</div>
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Chức Vụ</label>
+                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Chuc Vu</label>
                             <div style="font-size: 1rem; color: #0d1c2e;">
                                 <span style="background: #e6eeff; color: #00236f; padding: 0.5rem 0.75rem; border-radius: 0.4rem; display: inline-block;">
                                     @Model.ChucVu
@@ -46,14 +46,14 @@
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Ngày Sinh</label>
+                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Ngay Sinh</label>
                             <div style="font-size: 1rem; color: #0d1c2e;">
-                                @(Model.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")
+                                @(Model.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chua cap nhat")
                             </div>
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Điện Thoại</label>
+                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Dien Thoai</label>
                             <div style="font-size: 1rem; color: #0d1c2e;">
                                 <a href="tel:@Model.DienThoai">@Model.DienThoai</a>
                             </div>
@@ -62,10 +62,34 @@
                         @if (!string.IsNullOrEmpty(Model.DiaChi))
                         {
                             <div class="col-12">
-                                <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Địa Chỉ</label>
+                                <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Dia Chi</label>
                                 <div style="font-size: 1rem; color: #0d1c2e;">@Model.DiaChi</div>
                             </div>
                         }
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, #f8f9ff, #e6eeff); border-bottom: 2px solid #e6eeff;">
+                    <h5 style="color: #00236f; font-weight: 700; margin: 0;">Thong Tin Tai Khoan</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-12 col-md-6">
+                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Ten Dang Nhap</label>
+                            <div style="font-size: 1rem; color: #0d1c2e;">@(Model.MaTaiKhoanNavigation?.TenDangNhap ?? "Chua co tai khoan")</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Vai Tro</label>
+                            <div style="font-size: 1rem; color: #0d1c2e;">@(Model.MaTaiKhoanNavigation?.VaiTro ?? "---")</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label style="font-weight: 600; color: #6c757d; font-size: 0.85rem; text-transform: uppercase;">Ma Tai Khoan</label>
+                            <div style="font-size: 1rem; color: #0d1c2e;">@(Model.MaTaiKhoan?.ToString() ?? "---")</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -75,7 +99,7 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-header" style="background: linear-gradient(135deg, #f8f9ff, #e6eeff); border-bottom: 2px solid #e6eeff;">
                         <h5 style="color: #00236f; font-weight: 700; margin: 0;">
-                            📊 Hóa Đơn (@Model.HoaDons.Count())
+                            Hoa Don (@Model.HoaDons.Count())
                         </h5>
                     </div>
                     <div class="card-body p-4">
@@ -83,9 +107,9 @@
                             <table class="table table-sm table-hover mb-0">
                                 <thead style="background: #f8f9ff;">
                                     <tr>
-                                        <th style="color: #00236f; font-weight: 700;">Mã Hóa Đơn</th>
-                                        <th style="color: #00236f; font-weight: 700;">Ngày Lập</th>
-                                        <th style="color: #00236f; font-weight: 700; text-align: right;">Tổng Tiền</th>
+                                        <th style="color: #00236f; font-weight: 700;">Ma Hoa Don</th>
+                                        <th style="color: #00236f; font-weight: 700;">Ngay Lap</th>
+                                        <th style="color: #00236f; font-weight: 700; text-align: right;">Tong Tien</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -95,7 +119,7 @@
                                             <td>@hoaDon.MaHoaDon</td>
                                             <td>@hoaDon.NgayLap?.ToString("dd/MM/yyyy HH:mm")</td>
                                             <td style="text-align: right; color: #00236f; font-weight: 700;">
-                                                @hoaDon.TongTien?.ToString("N0") ₫
+                                                @hoaDon.TongTien?.ToString("N0") VND
                                             </td>
                                         </tr>
                                     }
@@ -108,10 +132,10 @@
 
             <div class="d-flex gap-2 mt-4">
                 <a asp-action="Edit" asp-route-id="@Model.MaNhanVien" class="btn btn-lg btn-warning flex-grow-1">
-                    <i class="bi bi-pencil"></i> Chỉnh Sửa
+                    <i class="bi bi-pencil"></i> Chinh Sua
                 </a>
                 <a asp-action="Delete" asp-route-id="@Model.MaNhanVien" class="btn btn-lg btn-danger flex-grow-1">
-                    <i class="bi bi-trash"></i> Xóa
+                    <i class="bi bi-trash"></i> Xoa
                 </a>
             </div>
         </div>

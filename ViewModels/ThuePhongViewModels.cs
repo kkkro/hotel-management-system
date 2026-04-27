@@ -57,13 +57,26 @@ namespace WebKhachSan.ViewModels
     public class TraPhongViewModel
     {
         public string MaThuePhong { get; set; } = string.Empty;
+        public string? MaKhachHang { get; set; }
         public string? TenKhachHang { get; set; }
         public string? SoPhong { get; set; }
         public DateTime? NgayNhan { get; set; }
+        public List<string> SelectedRentalIds { get; set; } = new();
+        public List<TraPhongRentalItemViewModel> RentalOptions { get; set; } = new();
 
         [Required(ErrorMessage = "Vui long chon ngay tra phong.")]
         [DataType(DataType.Date)]
         public DateTime NgayTra { get; set; } = DateTime.Today;
+    }
+
+    public class TraPhongRentalItemViewModel
+    {
+        public string MaThuePhong { get; set; } = string.Empty;
+        public string? SoPhong { get; set; }
+        public string? TenLoaiPhong { get; set; }
+        public DateTime? NgayNhan { get; set; }
+        public double? GiaThue { get; set; }
+        public bool IsSelected { get; set; }
     }
 
     public class ThuePhongStep1ViewModel

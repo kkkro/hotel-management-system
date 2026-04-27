@@ -38,12 +38,16 @@
                     {
                         var statusColor = item.TrangThai switch
                         {
+                            "Chưa nhận phòng" => "#ffb95f",
                             "Chờ xác nhận" => "#ffb95f",
-                            "Đã xác nhận" => "#006c49",
+                            "Đã xác nhận" => "#ffb95f",
+                            "Đã nhận phòng" => "#0d6efd",
                             "Đã checkin" => "#0d6efd",
                             "Đã hủy" => "#b3261e",
                             _ => "#757682"
                         };
+                        var canCheckIn = item.TrangThai == "Chưa nhận phòng" || item.TrangThai == "Đã xác nhận";
+
                         <tr style="border-bottom: 1px solid #eff4ff;">
                             <td style="font-weight: 600; color: #00236f;">@item.MaDatPhong</td>
                             <td>
@@ -53,7 +57,7 @@
                             <td>@item.NgayDat:dd/MM/yyyy</td>
                             <td>
                                 <small>@item.NgayNhanDuKien:dd/MM/yyyy</small><br />
-                                <small style="color: #757682;">→ @item.NgayTraDuKien:dd/MM/yyyy</small>
+                                <small style="color: #757682;">-> @item.NgayTraDuKien:dd/MM/yyyy</small>
                             </td>
                             <td>
                                 <span class="badge" style="background-color: @statusColor; color: white; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-weight: 600;">
@@ -73,7 +77,7 @@
                                         </button>
                                     </form>
                                 }
-                                @if (item.TrangThai == "Đã xác nhận")
+                                @if (canCheckIn)
                                 {
                                     <button type="button" class="btn btn-sm js-checkin-datphong" data-id="@item.MaDatPhong" style="background: #0d6efd; color: white; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: none; margin: 0 0.25rem;" title="Checkin">
                                         <span class="material-icons" style="font-size: 1rem;">login</span>

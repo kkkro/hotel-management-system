@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebKhachSan.Models;
 
@@ -17,124 +17,84 @@ namespace WebKhachSan.Controllers
             _logger = logger;
         }
 
-        // GET: HoaDon
         public async Task<IActionResult> Index()
         {
-            _logger.LogInformation("Người dùng {0} xem danh sách hóa đơn", User.Identity?.Name);
-            
             var hoaDons = await _context.HoaDons
-                .Include(hd => hd.MaThuePhongNavigation)
-                    .ThenInclude(tp => tp.MaKhachHangNavigation)
                 .Include(hd => hd.MaNhanVienNavigation)
                 .Include(hd => hd.CthoaDons)
+                    .ThenInclude(ct => ct.MaThuePhongNavigation)
+                        .ThenInclude(tp => tp.MaKhachHangNavigation)
                 .OrderByDescending(hd => hd.NgayLap)
                 .ToListAsync();
 
             return View(hoaDons);
         }
 
-        // GET: HoaDon/Details/5
         public async Task<IActionResult> Details(string id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return NotFound();
             }
 
             var hoaDon = await _context.HoaDons
-                .Include(hd => hd.MaThuePhongNavigation)
-                    .ThenInclude(tp => tp.MaKhachHangNavigation)
                 .Include(hd => hd.MaNhanVienNavigation)
                 .Include(hd => hd.CthoaDons)
-                .FirstOrDefaultAsync(m => m.MaHoaDon == id);
+                    .ThenInclude(ct => ct.MaThuePhongNavigation)
+                        .ThenInclude(tp => tp.MaKhachHangNavigation)
+                .FirstOrDefaultAsync(hd => hd.MaHoaDon == id);
 
             if (hoaDon == null)
             {
                 return NotFound();
             }
 
-            _logger.LogInformation("Người dùng {0} xem chi tiết hóa đơn: {1}", User.Identity?.Name, id);
-
             return View(hoaDon);
         }
 
-        // GET: HoaDon/Create
         public async Task<IActionResult> Create()
         {
-            var thuePhongs = await _context.ThuePhongs
-                .Include(tp => tp.MaKhachHangNavigation)
-                .OrderBy(tp => tp.MaThuePhong)
-                .ToListAsync();
-
-            var nhanViens = await _context.NhanViens
+            ViewBag.NhanViens = await _context.NhanViens
                 .OrderBy(nv => nv.TenNhanVien)
                 .ToListAsync();
-
-            ViewBag.ThuePhongs = thuePhongs;
-            ViewBag.NhanViens = nhanViens;
 
             return View();
         }
 
-        // POST: HoaDon/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaHoaDon,MaThuePhong,MaNhanVien,NgayLap,TongTien")] HoaDon hoaDon)
+        public async Task<IActionResult> Create([Bind("MaHoaDon,MaNhanVien,NgayLap,TongTien")] HoaDon hoaDon)
         {
             if (ModelState.IsValid)
             {
-                // Kiểm tra mã hóa đơn đã tồn tại
                 if (await _context.HoaDons.AnyAsync(hd => hd.MaHoaDon == hoaDon.MaHoaDon))
                 {
-                    ModelState.AddModelError("MaHoaDon", "Mã hóa đơn đã tồn tại");
+                    ModelState.AddModelError(nameof(HoaDon.MaHoaDon), "Ma hoa don da ton tai");
+                }
+                else if (!string.IsNullOrEmpty(hoaDon.MaNhanVien) && !await _context.NhanViens.AnyAsync(nv => nv.MaNhanVien == hoaDon.MaNhanVien))
+                {
+                    ModelState.AddModelError(nameof(HoaDon.MaNhanVien), "Ma nhan vien khong ton tai");
                 }
                 else
                 {
-                    // Kiểm tra mã thuê phòng có tồn tại
-                    if (!await _context.ThuePhongs.AnyAsync(tp => tp.MaThuePhong == hoaDon.MaThuePhong))
-                    {
-                        ModelState.AddModelError("MaThuePhong", "Mã thuê phòng không tồn tại");
-                    }
-                    // Kiểm tra mã nhân viên có tồn tại
-                    else if (!string.IsNullOrEmpty(hoaDon.MaNhanVien) && !await _context.NhanViens.AnyAsync(nv => nv.MaNhanVien == hoaDon.MaNhanVien))
-                    {
-                        ModelState.AddModelError("MaNhanVien", "Mã nhân viên không tồn tại");
-                    }
-                    else
-                    {
-                        if (hoaDon.NgayLap == null)
-                            hoaDon.NgayLap = DateTime.Now;
-
-                        _context.Add(hoaDon);
-                        await _context.SaveChangesAsync();
-
-                        _logger.LogInformation("Người dùng {0} tạo hóa đơn mới: {1}", User.Identity?.Name, hoaDon.MaHoaDon);
-
-                        TempData["Success"] = "Tạo hóa đơn thành công";
-                        return RedirectToAction(nameof(Details), new { id = hoaDon.MaHoaDon });
-                    }
+                    hoaDon.NgayLap ??= DateTime.Today;
+                    _context.HoaDons.Add(hoaDon);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = "Tao hoa don thanh cong";
+                    return RedirectToAction(nameof(Details), new { id = hoaDon.MaHoaDon });
                 }
             }
 
-            var thuePhongs = await _context.ThuePhongs
-                .Include(tp => tp.MaKhachHangNavigation)
-                .OrderBy(tp => tp.MaThuePhong)
-                .ToListAsync();
-
-            var nhanViens = await _context.NhanViens
+            ViewBag.NhanViens = await _context.NhanViens
                 .OrderBy(nv => nv.TenNhanVien)
                 .ToListAsync();
-
-            ViewBag.ThuePhongs = thuePhongs;
-            ViewBag.NhanViens = nhanViens;
 
             return View(hoaDon);
         }
 
-        // GET: HoaDon/Edit/5
         public async Task<IActionResult> Edit(string id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return NotFound();
             }
@@ -145,25 +105,16 @@ namespace WebKhachSan.Controllers
                 return NotFound();
             }
 
-            var thuePhongs = await _context.ThuePhongs
-                .Include(tp => tp.MaKhachHangNavigation)
-                .OrderBy(tp => tp.MaThuePhong)
-                .ToListAsync();
-
-            var nhanViens = await _context.NhanViens
+            ViewBag.NhanViens = await _context.NhanViens
                 .OrderBy(nv => nv.TenNhanVien)
                 .ToListAsync();
-
-            ViewBag.ThuePhongs = thuePhongs;
-            ViewBag.NhanViens = nhanViens;
 
             return View(hoaDon);
         }
 
-        // POST: HoaDon/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("MaHoaDon,MaThuePhong,MaNhanVien,NgayLap,TongTien")] HoaDon hoaDon)
+        public async Task<IActionResult> Edit(string id, [Bind("MaHoaDon,MaNhanVien,NgayLap,TongTien")] HoaDon hoaDon)
         {
             if (id != hoaDon.MaHoaDon)
             {
@@ -176,10 +127,8 @@ namespace WebKhachSan.Controllers
                 {
                     _context.Update(hoaDon);
                     await _context.SaveChangesAsync();
-                    
-                    _logger.LogInformation("Người dùng {0} cập nhật hóa đơn: {1}", User.Identity?.Name, hoaDon.MaHoaDon);
-                    
-                    TempData["Success"] = "Cập nhật hóa đơn thành công";
+                    TempData["Success"] = "Cap nhat hoa don thanh cong";
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -187,42 +136,31 @@ namespace WebKhachSan.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
 
-            var thuePhongs = await _context.ThuePhongs
-                .Include(tp => tp.MaKhachHangNavigation)
-                .OrderBy(tp => tp.MaThuePhong)
-                .ToListAsync();
-
-            var nhanViens = await _context.NhanViens
+            ViewBag.NhanViens = await _context.NhanViens
                 .OrderBy(nv => nv.TenNhanVien)
                 .ToListAsync();
-
-            ViewBag.ThuePhongs = thuePhongs;
-            ViewBag.NhanViens = nhanViens;
 
             return View(hoaDon);
         }
 
-        // GET: HoaDon/Delete/5
         public async Task<IActionResult> Delete(string id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return NotFound();
             }
 
             var hoaDon = await _context.HoaDons
-                .Include(hd => hd.MaThuePhongNavigation)
                 .Include(hd => hd.MaNhanVienNavigation)
                 .Include(hd => hd.CthoaDons)
-                .FirstOrDefaultAsync(m => m.MaHoaDon == id);
+                    .ThenInclude(ct => ct.MaThuePhongNavigation)
+                        .ThenInclude(tp => tp.MaKhachHangNavigation)
+                .FirstOrDefaultAsync(hd => hd.MaHoaDon == id);
 
             if (hoaDon == null)
             {
@@ -232,7 +170,6 @@ namespace WebKhachSan.Controllers
             return View(hoaDon);
         }
 
-        // POST: HoaDon/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -246,7 +183,6 @@ namespace WebKhachSan.Controllers
                 return NotFound();
             }
 
-            // Xóa chi tiết hóa đơn trước
             if (hoaDon.CthoaDons.Any())
             {
                 _context.CthoaDons.RemoveRange(hoaDon.CthoaDons);
@@ -255,9 +191,7 @@ namespace WebKhachSan.Controllers
             _context.HoaDons.Remove(hoaDon);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Người dùng {0} xóa hóa đơn: {1}", User.Identity?.Name, id);
-
-            TempData["Success"] = "Xóa hóa đơn thành công";
+            TempData["Success"] = "Xoa hoa don thanh cong";
             return RedirectToAction(nameof(Index));
         }
 

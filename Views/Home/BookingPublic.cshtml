@@ -425,6 +425,29 @@
             font-size: 0.9rem;
         }
 
+        .selected-room-group {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--soft);
+            padding: 0.9rem 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .selected-room-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .selected-room-group-title {
+            font-weight: 800;
+            color: var(--primary-dark);
+            margin-bottom: 0.35rem;
+        }
+
+        .selected-room-group-meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
         .loading,
         .empty-state {
             text-align: center;
@@ -618,6 +641,16 @@
                         </div>
 
                         <div style="margin-bottom: 1rem;" class="form-group-custom">
+                            <label>CCCD</label>
+                            <input type="text" id="cccd" placeholder="Nhap so CCCD" />
+                        </div>
+
+                        <div style="margin-bottom: 1rem;" class="form-group-custom">
+                            <label>Email</label>
+                            <input type="email" id="email" placeholder="Nhap email" />
+                        </div>
+
+                        <div style="margin-bottom: 1rem;" class="form-group-custom">
                             <label>Dia Chi <span style="color: red;">*</span></label>
                             <input type="text" id="diaChi" placeholder="Nhap dia chi" required />
                         </div>
@@ -703,6 +736,25 @@
             selectedRooms = [];
             roomTypeSelections = {};
             updateSelectionSummary();
+        }
+
+        function getSelectedRoomGroups() {
+            const groups = {};
+
+            selectedRooms.forEach(room => {
+                const key = room.maLoaiPhong || room.tenLoaiPhong || room.maPhong;
+                if (!groups[key]) {
+                    groups[key] = {
+                        tenLoaiPhong: room.tenLoaiPhong,
+                        gia: Number(room.gia || 0),
+                        quantity: 0
+                    };
+                }
+
+                groups[key].quantity += 1;
+            });
+
+            return Object.values(groups);
         }
 
         function timPhongTrong() {
@@ -887,14 +939,20 @@
             const button = document.getElementById('btnMoDatPhong');
             const soDem = searchResultState?.soNgay || 0;
             const total = selectedRooms.reduce((sum, room) => sum + (room.gia * soDem), 0);
-            const roomListText = selectedRooms.length > 0
-                ? selectedRooms.map(room => `${room.soPhong} (${room.tenLoaiPhong})`).join(', ')
+            const roomGroups = getSelectedRoomGroups();
+            const roomListHtml = roomGroups.length > 0
+                ? roomGroups.map(group => `
+                    <div class="selected-room-group">
+                        <div class="selected-room-group-title">${group.tenLoaiPhong}</div>
+                        <div class="selected-room-group-meta">Gia: ${formatCurrency(group.gia)} | So luong: ${group.quantity}</div>
+                    </div>
+                `).join('')
                 : 'Chua chon phong nao';
 
             summary.style.display = searchResultState ? 'block' : 'none';
             document.getElementById('selectedCount').textContent = selectedRooms.length;
             document.getElementById('selectedTotal').textContent = formatCurrency(total);
-            document.getElementById('selectedRoomList').textContent = roomListText;
+            document.getElementById('selectedRoomList').innerHTML = roomListHtml;
             button.disabled = selectedRooms.length === 0;
         }
 
@@ -908,6 +966,7 @@
             const ngayTra = document.getElementById('ngayTra').value;
             const soDem = searchResultState.soNgay || 0;
             const total = selectedRooms.reduce((sum, room) => sum + (room.gia * soDem), 0);
+            const roomGroups = getSelectedRoomGroups();
 
             document.getElementById('hiddenNgayNhan').value = ngayNhan;
             document.getElementById('hiddenNgayTra').value = ngayTra;
@@ -915,8 +974,13 @@
             document.getElementById('calcRooms').textContent = selectedRooms.length;
             document.getElementById('calcTotal').textContent = formatCurrency(total);
 
-            document.getElementById('selectedRoomsPreview').innerHTML = selectedRooms
-                .map(room => `<span class="selected-room-pill">${room.soPhong} - ${room.tenLoaiPhong}</span>`)
+            document.getElementById('selectedRoomsPreview').innerHTML = roomGroups
+                .map(group => `
+                    <div class="selected-room-group">
+                        <div class="selected-room-group-title">${group.tenLoaiPhong}</div>
+                        <div class="selected-room-group-meta">Gia tung phong: ${formatCurrency(group.gia)} | So luong da chon: ${group.quantity}</div>
+                    </div>
+                `)
                 .join('');
 
             bookingModal.show();
@@ -932,6 +996,8 @@
 
             const tenKhach = document.getElementById('tenKhachHang').value.trim();
             const sdt = document.getElementById('dienThoai').value.trim();
+            const cccd = document.getElementById('cccd').value.trim();
+            const email = document.getElementById('email').value.trim();
             const diaChi = document.getElementById('diaChi').value.trim();
             const ghiChu = document.getElementById('ghiChu').value.trim();
             const ngayNhan = document.getElementById('hiddenNgayNhan').value;
@@ -940,7 +1006,7 @@
             fetch('/KhachHang/CreateCustomer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tenKhachHang: tenKhach, dienThoai: sdt, diaChi: diaChi })
+                body: JSON.stringify({ tenKhachHang: tenKhach, dienThoai: sdt, cccd: cccd, email: email, diaChi: diaChi })
             })
             .then(readJson)
             .then(cust => {

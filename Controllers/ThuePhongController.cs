@@ -107,7 +107,7 @@ namespace WebKhachSan.Controllers
                     GiaThueTaiThoiDiem = giaHienTai.Gia
                 };
 
-                phong.TrangThai = "Có khách";
+                phong.TrangThai = "Đang sử dụng";
 
                 _context.ThuePhongs.Add(thuePhong);
                 _context.CtthuePhongs.Add(chiTiet);
@@ -277,7 +277,7 @@ namespace WebKhachSan.Controllers
                     var phong = await _context.Phongs.FindAsync(phongChon.MaPhong);
                     if (phong != null)
                     {
-                        phong.TrangThai = "Có khách";
+                        phong.TrangThai = "Đang sử dụng";
                     }
 
                     _context.ThuePhongs.Add(thuePhong);
@@ -340,6 +340,7 @@ namespace WebKhachSan.Controllers
                 .Include(tp => tp.MaKhachHangNavigation)
                 .Include(tp => tp.CtthuePhongs)
                     .ThenInclude(ct => ct.MaPhongNavigation)
+                        .ThenInclude(p => p.MaLoaiPhongNavigation)
                 .FirstOrDefaultAsync(tp => tp.MaThuePhong == id);
 
             if (thuePhong == null)
@@ -350,11 +351,35 @@ namespace WebKhachSan.Controllers
             var model = new TraPhongViewModel
             {
                 MaThuePhong = thuePhong.MaThuePhong,
+                MaKhachHang = thuePhong.MaKhachHang,
                 TenKhachHang = thuePhong.MaKhachHangNavigation?.TenKhachHang,
                 SoPhong = thuePhong.CtthuePhongs.FirstOrDefault()?.MaPhongNavigation?.SoPhong,
                 NgayNhan = thuePhong.NgayNhan,
                 NgayTra = DateTime.Today
             };
+
+            var activeRentals = await _context.ThuePhongs
+                .Include(tp => tp.CtthuePhongs)
+                    .ThenInclude(ct => ct.MaPhongNavigation)
+                        .ThenInclude(p => p.MaLoaiPhongNavigation)
+                .Where(tp => tp.MaKhachHang == thuePhong.MaKhachHang && !IsReturnedRentalStatus(tp.TrangThai))
+                .OrderBy(tp => tp.MaThuePhong)
+                .ToListAsync();
+
+            model.SelectedRentalIds = new List<string> { thuePhong.MaThuePhong };
+            model.RentalOptions = activeRentals.Select(tp =>
+            {
+                var chiTiet = tp.CtthuePhongs.FirstOrDefault();
+                return new TraPhongRentalItemViewModel
+                {
+                    MaThuePhong = tp.MaThuePhong,
+                    SoPhong = chiTiet?.MaPhongNavigation?.SoPhong ?? chiTiet?.MaPhong,
+                    TenLoaiPhong = chiTiet?.MaPhongNavigation?.MaLoaiPhongNavigation?.TenLoaiPhong,
+                    NgayNhan = tp.NgayNhan,
+                    GiaThue = chiTiet?.GiaThueTaiThoiDiem,
+                    IsSelected = tp.MaThuePhong == thuePhong.MaThuePhong
+                };
+            }).ToList();
 
             return PartialView("_TraPhongModal", model);
         }
@@ -363,8 +388,19 @@ namespace WebKhachSan.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TraPhong(TraPhongViewModel model)
         {
+            model.SelectedRentalIds = model.SelectedRentalIds?
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()
+                .ToList() ?? new List<string>();
+
+            if (!model.SelectedRentalIds.Any())
+            {
+                ModelState.AddModelError(string.Empty, "Vui long chon it nhat mot phieu thue de tra phong.");
+            }
+
             if (!ModelState.IsValid)
             {
+                await PopulateTraPhongOptionsAsync(model);
                 Response.StatusCode = 400;
                 return PartialView("_TraPhongModal", model);
             }
@@ -373,41 +409,72 @@ namespace WebKhachSan.Controllers
 
             try
             {
-                var thuePhong = await _context.ThuePhongs
+                var selectedRentals = await _context.ThuePhongs
                     .Include(tp => tp.CtthuePhongs)
-                    .FirstOrDefaultAsync(tp => tp.MaThuePhong == model.MaThuePhong);
+                        .ThenInclude(ct => ct.MaPhongNavigation)
+                            .ThenInclude(p => p.MaLoaiPhongNavigation)
+                    .Where(tp => model.SelectedRentalIds.Contains(tp.MaThuePhong))
+                    .ToListAsync();
 
-                if (thuePhong == null)
+                if (!selectedRentals.Any())
                 {
                     return NotFound();
                 }
 
-                thuePhong.NgayTra = model.NgayTra;
-                thuePhong.TrangThai = "Da tra";
+                var customerIds = selectedRentals
+                    .Select(tp => tp.MaKhachHang)
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .Distinct()
+                    .ToList();
 
-                foreach (var ct in thuePhong.CtthuePhongs)
+                if (customerIds.Count > 1)
                 {
-                    var phong = await _context.Phongs.FindAsync(ct.MaPhong);
-                    if (phong != null)
+                    ModelState.AddModelError(string.Empty, "Chi duoc gop cac phieu thue cua cung mot khach hang.");
+                    await PopulateTraPhongOptionsAsync(model);
+                    Response.StatusCode = 400;
+                    return PartialView("_TraPhongModal", model);
+                }
+
+                var alreadyInvoicedIds = await GetAlreadyInvoicedRentalIdsAsync(model.SelectedRentalIds);
+                if (alreadyInvoicedIds.Any())
+                {
+                    ModelState.AddModelError(string.Empty, $"Cac phieu thue sau da co hoa don: {string.Join(", ", alreadyInvoicedIds)}.");
+                    await PopulateTraPhongOptionsAsync(model);
+                    Response.StatusCode = 400;
+                    return PartialView("_TraPhongModal", model);
+                }
+
+                foreach (var thuePhong in selectedRentals)
+                {
+                    thuePhong.NgayTra = model.NgayTra;
+                    thuePhong.TrangThai = "Da tra";
+
+                    foreach (var ct in thuePhong.CtthuePhongs)
                     {
-                        phong.TrangThai = "Trống";
+                        var phong = await _context.Phongs.FindAsync(ct.MaPhong);
+                        if (phong != null)
+                        {
+                            phong.TrangThai = "Trống";
+                        }
                     }
                 }
 
+                await CreateCombinedInvoiceForReturnedRentalsAsync(selectedRentals);
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                _logger.LogInformation("Nguoi dung {User} tra phong cho phieu thue {MaThuePhong}, NgayTra: {NgayTra}",
-                    User.Identity?.Name, model.MaThuePhong, model.NgayTra);
+                _logger.LogInformation("Nguoi dung {User} tra phong cho {Count} phieu thue cua khach {MaKhachHang}, NgayTra: {NgayTra}",
+                    User.Identity?.Name, selectedRentals.Count, customerIds.FirstOrDefault(), model.NgayTra);
 
                 TempData["Success"] = $"Da tra phong thanh cong.";
-                return Json(new { success = true, message = "Da tra phong thanh cong." });
+                return Json(new { success = true, message = "Da tra phong va tao hoa don thanh cong." });
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 _logger.LogError(ex, "Loi khi tra phong {MaThuePhong}", model.MaThuePhong);
                 ModelState.AddModelError(string.Empty, "Khong the tra phong. Vui long thu lai.");
+                await PopulateTraPhongOptionsAsync(model);
                 Response.StatusCode = 500;
                 return PartialView("_TraPhongModal", model);
             }
@@ -598,6 +665,143 @@ namespace WebKhachSan.Controllers
             return $"{prefix}{max + 1:D3}";
         }
 
+        private async Task CreateCombinedInvoiceForReturnedRentalsAsync(List<ThuePhong> rentals)
+        {
+            if (!rentals.Any())
+            {
+                return;
+            }
+
+            var maHoaDon = await GenerateNextCodeAsync(_context.HoaDons.Select(hd => hd.MaHoaDon), "HD");
+            var chiTietHoaDon = new List<CthoaDon>();
+            var existingDetailIds = await _context.CthoaDons.Select(x => x.MaCthd).ToListAsync();
+            var nextDetailNumber = existingDetailIds
+                .Select(id =>
+                {
+                    var digits = new string((id ?? string.Empty).Skip(4).Where(char.IsDigit).ToArray());
+                    return int.TryParse(digits, out var number) ? number : 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max() + 1;
+            double tongTien = 0;
+
+            foreach (var rental in rentals.OrderBy(tp => tp.MaThuePhong))
+            {
+                var ngayNhan = rental.NgayNhan?.Date ?? DateTime.Today;
+                var ngayTra = rental.NgayTra?.Date ?? DateTime.Today;
+                var soNgay = Math.Max(1, (ngayTra - ngayNhan).Days);
+                var roomDescriptions = rental.CtthuePhongs.Select(ct =>
+                {
+                    var soPhong = ct.MaPhongNavigation?.SoPhong ?? ct.MaPhong;
+                    var tenLoaiPhong = ct.MaPhongNavigation?.MaLoaiPhongNavigation?.TenLoaiPhong ?? "Phong";
+                    return $"{tenLoaiPhong} {soPhong}";
+                }).ToList();
+                var lineTotal = rental.CtthuePhongs.Sum(ct => (ct.GiaThueTaiThoiDiem ?? 0) * soNgay);
+                var maCthd = $"CTHD{nextDetailNumber:D3}";
+                nextDetailNumber++;
+
+                chiTietHoaDon.Add(new CthoaDon
+                {
+                    MaCthd = maCthd,
+                    MaHoaDon = maHoaDon,
+                    MaThuePhong = rental.MaThuePhong,
+                    NoiDung = $"[{rental.MaThuePhong}] {string.Join(", ", roomDescriptions)} - {soNgay} ngay",
+                    SoTien = lineTotal
+                });
+
+                tongTien += lineTotal;
+            }
+
+            var hoaDon = new HoaDon
+            {
+                MaHoaDon = maHoaDon,
+                MaNhanVien = null,
+                NgayLap = DateTime.Now,
+                TongTien = tongTien
+            };
+
+            _context.HoaDons.Add(hoaDon);
+            _context.CthoaDons.AddRange(chiTietHoaDon);
+        }
+
+        private async Task PopulateTraPhongOptionsAsync(TraPhongViewModel model)
+        {
+            if (string.IsNullOrWhiteSpace(model.MaThuePhong))
+            {
+                return;
+            }
+
+            var anchorRental = await _context.ThuePhongs
+                .Include(tp => tp.MaKhachHangNavigation)
+                .Include(tp => tp.CtthuePhongs)
+                    .ThenInclude(ct => ct.MaPhongNavigation)
+                        .ThenInclude(p => p.MaLoaiPhongNavigation)
+                .FirstOrDefaultAsync(tp => tp.MaThuePhong == model.MaThuePhong);
+
+            if (anchorRental == null)
+            {
+                return;
+            }
+
+            model.MaKhachHang = anchorRental.MaKhachHang;
+            model.TenKhachHang = anchorRental.MaKhachHangNavigation?.TenKhachHang;
+            model.SoPhong = anchorRental.CtthuePhongs.FirstOrDefault()?.MaPhongNavigation?.SoPhong;
+            model.NgayNhan = anchorRental.NgayNhan;
+
+            var activeRentals = await _context.ThuePhongs
+                .Include(tp => tp.CtthuePhongs)
+                    .ThenInclude(ct => ct.MaPhongNavigation)
+                        .ThenInclude(p => p.MaLoaiPhongNavigation)
+                .Where(tp => tp.MaKhachHang == anchorRental.MaKhachHang && !IsReturnedRentalStatus(tp.TrangThai))
+                .OrderBy(tp => tp.MaThuePhong)
+                .ToListAsync();
+
+            model.RentalOptions = activeRentals.Select(tp =>
+            {
+                var chiTiet = tp.CtthuePhongs.FirstOrDefault();
+                return new TraPhongRentalItemViewModel
+                {
+                    MaThuePhong = tp.MaThuePhong,
+                    SoPhong = chiTiet?.MaPhongNavigation?.SoPhong ?? chiTiet?.MaPhong,
+                    TenLoaiPhong = chiTiet?.MaPhongNavigation?.MaLoaiPhongNavigation?.TenLoaiPhong,
+                    NgayNhan = tp.NgayNhan,
+                    GiaThue = chiTiet?.GiaThueTaiThoiDiem,
+                    IsSelected = model.SelectedRentalIds.Contains(tp.MaThuePhong)
+                };
+            }).ToList();
+        }
+
+        private async Task<List<string>> GetAlreadyInvoicedRentalIdsAsync(IEnumerable<string> rentalIds)
+        {
+            var ids = rentalIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToList();
+            if (!ids.Any())
+            {
+                return new List<string>();
+            }
+
+            var directIds = await _context.CthoaDons
+                .Where(ct => ct.MaThuePhong != null && ids.Contains(ct.MaThuePhong))
+                .Select(ct => ct.MaThuePhong!)
+                .ToListAsync();
+
+            var taggedDetails = await _context.CthoaDons
+                .Where(ct => ct.NoiDung != null)
+                .Select(ct => ct.NoiDung!)
+                .ToListAsync();
+
+            var detailIds = ids
+                .Where(id => taggedDetails.Any(detail => detail.StartsWith($"[{id}]")))
+                .ToList();
+
+            return directIds.Concat(detailIds).Distinct().ToList();
+        }
+
+        private static bool IsReturnedRentalStatus(string? trangThai)
+        {
+            var normalized = (trangThai ?? string.Empty).Trim();
+            return normalized == "Da tra" || normalized == "Đã trả";
+        }
+
         private static string NormalizeTrangThai(string? trangThai)
         {
             var normalized = (trangThai ?? string.Empty).Trim();
@@ -605,7 +809,7 @@ namespace WebKhachSan.Controllers
             return normalized switch
             {
                 "Tr?ng" or "Trá»‘ng" or "Trống" => "Trống",
-                "CÃ³ khÃ¡ch" or "Có khách" => "Có khách",
+                "Đang sử dụng" or "CÃ³ khÃ¡ch" or "Có khách" => "Đang sử dụng",
                 "B?o trì" or "Báº£o trÃ¬" or "Bảo trì" => "Bảo trì",
                 "Ðã d?t" or "ÄÃ£ Ä‘áº·t" or "Đã đặt" => "Đã đặt",
                 _ => normalized

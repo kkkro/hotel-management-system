@@ -11,13 +11,11 @@ namespace WebKhachSan.Models
         }
 
         public string MaHoaDon { get; set; } = null!;
-        public string? MaThuePhong { get; set; }
         public string? MaNhanVien { get; set; }
         public DateTime? NgayLap { get; set; }
         public double? TongTien { get; set; }
 
         public virtual NhanVien? MaNhanVienNavigation { get; set; }
-        public virtual ThuePhong? MaThuePhongNavigation { get; set; }
         public virtual ICollection<CthoaDon> CthoaDons { get; set; }
     }
 }

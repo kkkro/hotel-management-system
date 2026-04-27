@@ -63,6 +63,11 @@ namespace WebKhachSan.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
 
+                    b.Property<string>("MaThuePhong")
+                        .HasMaxLength(20)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(20)");
+
                     b.Property<string>("NoiDung")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -74,6 +79,8 @@ namespace WebKhachSan.Migrations
                         .HasName("PK__CTHoaDon__1E4FA771C49770B6");
 
                     b.HasIndex("MaHoaDon");
+
+                    b.HasIndex("MaThuePhong");
 
                     b.ToTable("CTHoaDon", (string)null);
                 });
@@ -175,11 +182,6 @@ namespace WebKhachSan.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(20)");
 
-                    b.Property<string>("MaThuePhong")
-                        .HasMaxLength(20)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(20)");
-
                     b.Property<DateTime?>("NgayLap")
                         .HasColumnType("date");
 
@@ -190,8 +192,6 @@ namespace WebKhachSan.Migrations
                         .HasName("PK__HoaDon__835ED13B84974548");
 
                     b.HasIndex("MaNhanVien");
-
-                    b.HasIndex("MaThuePhong");
 
                     b.ToTable("HoaDon", (string)null);
                 });
@@ -403,7 +403,14 @@ namespace WebKhachSan.Migrations
                         .HasForeignKey("MaHoaDon")
                         .HasConstraintName("FK_CTHD_HoaDon");
 
+                    b.HasOne("WebKhachSan.Models.ThuePhong", "MaThuePhongNavigation")
+                        .WithMany("CthoaDons")
+                        .HasForeignKey("MaThuePhong")
+                        .HasConstraintName("FK_CTHD_ThuePhong");
+
                     b.Navigation("MaHoaDonNavigation");
+
+                    b.Navigation("MaThuePhongNavigation");
                 });
 
             modelBuilder.Entity("WebKhachSan.Models.CtthuePhong", b =>
@@ -452,14 +459,7 @@ namespace WebKhachSan.Migrations
                         .HasForeignKey("MaNhanVien")
                         .HasConstraintName("FK_HoaDon_NhanVien");
 
-                    b.HasOne("WebKhachSan.Models.ThuePhong", "MaThuePhongNavigation")
-                        .WithMany("HoaDons")
-                        .HasForeignKey("MaThuePhong")
-                        .HasConstraintName("FK_HoaDon_ThuePhong");
-
                     b.Navigation("MaNhanVienNavigation");
-
-                    b.Navigation("MaThuePhongNavigation");
                 });
 
             modelBuilder.Entity("WebKhachSan.Models.NhanVien", b =>

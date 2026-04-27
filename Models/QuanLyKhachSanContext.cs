@@ -85,12 +85,21 @@ namespace WebKhachSan.Models
                     .HasMaxLength(20)
                     .IsUnicode(false);
 
+                entity.Property(e => e.MaThuePhong)
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.NoiDung).HasMaxLength(255);
 
                 entity.HasOne(d => d.MaHoaDonNavigation)
                     .WithMany(p => p.CthoaDons)
                     .HasForeignKey(d => d.MaHoaDon)
                     .HasConstraintName("FK_CTHD_HoaDon");
+
+                entity.HasOne(d => d.MaThuePhongNavigation)
+                    .WithMany(p => p.CthoaDons)
+                    .HasForeignKey(d => d.MaThuePhong)
+                    .HasConstraintName("FK_CTHD_ThuePhong");
             });
 
             modelBuilder.Entity<CtthuePhong>(entity =>
@@ -190,10 +199,6 @@ namespace WebKhachSan.Models
                     .HasMaxLength(20)
                     .IsUnicode(false);
 
-                entity.Property(e => e.MaThuePhong)
-                    .HasMaxLength(20)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.NgayLap).HasColumnType("date");
 
                 entity.HasOne(d => d.MaNhanVienNavigation)
@@ -201,10 +206,6 @@ namespace WebKhachSan.Models
                     .HasForeignKey(d => d.MaNhanVien)
                     .HasConstraintName("FK_HoaDon_NhanVien");
 
-                entity.HasOne(d => d.MaThuePhongNavigation)
-                    .WithMany(p => p.HoaDons)
-                    .HasForeignKey(d => d.MaThuePhong)
-                    .HasConstraintName("FK_HoaDon_ThuePhong");
             });
 
             modelBuilder.Entity<KhachHang>(entity =>

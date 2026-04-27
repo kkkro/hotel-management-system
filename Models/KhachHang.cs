@@ -16,7 +16,7 @@ namespace WebKhachSan.Models
         public string? DienThoai { get; set; }
         public string? DiaChi { get; set; }
         public string? Cccd { get; set; }
-
+        public string? Email { get; set; }
         public virtual ICollection<DatPhong> DatPhongs { get; set; }
         public virtual ICollection<ThuePhong> ThuePhongs { get; set; }
     }

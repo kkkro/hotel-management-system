@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using WebKhachSan.Models;
 
@@ -17,11 +18,10 @@ namespace WebKhachSan.Controllers
             _logger = logger;
         }
 
-        // GET: KhachHang
         public async Task<IActionResult> Index()
         {
-            _logger.LogInformation("Người dùng {0} xem danh sách khách hàng", User.Identity?.Name);
-            
+            _logger.LogInformation("Nguoi dung {User} xem danh sach khach hang", User.Identity?.Name);
+
             var khachHangs = await _context.KhachHangs
                 .Include(k => k.ThuePhongs)
                 .Include(k => k.DatPhongs)
@@ -31,7 +31,6 @@ namespace WebKhachSan.Controllers
             return View(khachHangs);
         }
 
-        // GET: KhachHang/Details/5
         public async Task<IActionResult> Details(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -52,55 +51,48 @@ namespace WebKhachSan.Controllers
                 return NotFound();
             }
 
-            _logger.LogInformation("Người dùng {0} xem chi tiết khách hàng: {1}", User.Identity?.Name, id);
+            _logger.LogInformation("Nguoi dung {User} xem chi tiet khach hang: {Id}", User.Identity?.Name, id);
 
             return View(khachHang);
         }
 
-        // GET: KhachHang/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: KhachHang/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaKhachHang,TenKhachHang,DienThoai,DiaChi,Cccd")] KhachHang khachHang)
+        public async Task<IActionResult> Create([Bind("MaKhachHang,TenKhachHang,DienThoai,DiaChi,Cccd,Email")] KhachHang khachHang)
         {
             if (ModelState.IsValid)
             {
-                // Kiểm tra mã khách hàng đã tồn tại
                 if (await _context.KhachHangs.AnyAsync(k => k.MaKhachHang == khachHang.MaKhachHang))
                 {
-                    ModelState.AddModelError("MaKhachHang", "Mã khách hàng đã tồn tại");
+                    ModelState.AddModelError("MaKhachHang", "Ma khach hang da ton tai");
                     return View(khachHang);
                 }
 
-                // Kiểm tra CCCD
-                if (!string.IsNullOrEmpty(khachHang.Cccd))
+                if (!string.IsNullOrEmpty(khachHang.Cccd) &&
+                    await _context.KhachHangs.AnyAsync(k => k.Cccd == khachHang.Cccd))
                 {
-                    if (await _context.KhachHangs.AnyAsync(k => k.Cccd == khachHang.Cccd))
-                    {
-                        ModelState.AddModelError("Cccd", "CCCD này đã tồn tại trong hệ thống");
-                        return View(khachHang);
-                    }
+                    ModelState.AddModelError("Cccd", "CCCD nay da ton tai trong he thong");
+                    return View(khachHang);
                 }
 
                 _context.Add(khachHang);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Người dùng {0} thêm khách hàng mới: {1} - {2}",
+                _logger.LogInformation("Nguoi dung {User} them khach hang moi: {MaKhachHang} - {TenKhachHang}",
                     User.Identity?.Name, khachHang.MaKhachHang, khachHang.TenKhachHang);
 
-                TempData["Success"] = "Thêm khách hàng thành công";
+                TempData["Success"] = "Them khach hang thanh cong";
                 return RedirectToAction(nameof(Index));
             }
 
             return View(khachHang);
         }
 
-        // GET: KhachHang/Edit/5
         public async Task<IActionResult> Edit(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -117,10 +109,9 @@ namespace WebKhachSan.Controllers
             return View(khachHang);
         }
 
-        // POST: KhachHang/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("MaKhachHang,TenKhachHang,DienThoai,DiaChi,Cccd")] KhachHang khachHang)
+        public async Task<IActionResult> Edit(string id, [Bind("MaKhachHang,TenKhachHang,DienThoai,DiaChi,Cccd,Email")] KhachHang khachHang)
         {
             if (id != khachHang.MaKhachHang)
             {
@@ -129,14 +120,11 @@ namespace WebKhachSan.Controllers
 
             if (ModelState.IsValid)
             {
-                // Kiểm tra CCCD
-                if (!string.IsNullOrEmpty(khachHang.Cccd))
+                if (!string.IsNullOrEmpty(khachHang.Cccd) &&
+                    await _context.KhachHangs.AnyAsync(k => k.Cccd == khachHang.Cccd && k.MaKhachHang != id))
                 {
-                    if (await _context.KhachHangs.AnyAsync(k => k.Cccd == khachHang.Cccd && k.MaKhachHang != id))
-                    {
-                        ModelState.AddModelError("Cccd", "CCCD này đã tồn tại trong hệ thống");
-                        return View(khachHang);
-                    }
+                    ModelState.AddModelError("Cccd", "CCCD nay da ton tai trong he thong");
+                    return View(khachHang);
                 }
 
                 try
@@ -144,10 +132,9 @@ namespace WebKhachSan.Controllers
                     _context.Update(khachHang);
                     await _context.SaveChangesAsync();
 
-                    _logger.LogInformation("Người dùng {0} chỉnh sửa khách hàng: {1}",
-                        User.Identity?.Name, id);
+                    _logger.LogInformation("Nguoi dung {User} chinh sua khach hang: {Id}", User.Identity?.Name, id);
 
-                    TempData["Success"] = "Cập nhật khách hàng thành công";
+                    TempData["Success"] = "Cap nhat khach hang thanh cong";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
@@ -156,17 +143,14 @@ namespace WebKhachSan.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
             }
 
             return View(khachHang);
         }
 
-        // GET: KhachHang/Delete/5
         public async Task<IActionResult> Delete(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -187,7 +171,6 @@ namespace WebKhachSan.Controllers
             return View(khachHang);
         }
 
-        // POST: KhachHang/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -198,24 +181,21 @@ namespace WebKhachSan.Controllers
                 return NotFound();
             }
 
-            // Kiểm tra có đơn đặt phòng hoặc thuê phòng
             if (khachHang.DatPhongs.Any() || khachHang.ThuePhongs.Any())
             {
-                TempData["Error"] = "Không thể xóa khách hàng này vì có đơn đặt phòng hoặc lịch sử thuê phòng";
-                return RedirectToAction(nameof(Delete), new { id = id });
+                TempData["Error"] = "Khong the xoa khach hang nay vi co don dat phong hoac lich su thue phong";
+                return RedirectToAction(nameof(Delete), new { id });
             }
 
             _context.KhachHangs.Remove(khachHang);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Người dùng {0} xóa khách hàng: {1}",
-                User.Identity?.Name, id);
+            _logger.LogInformation("Nguoi dung {User} xoa khach hang: {Id}", User.Identity?.Name, id);
 
-            TempData["Success"] = "Xóa khách hàng thành công";
+            TempData["Success"] = "Xoa khach hang thanh cong";
             return RedirectToAction(nameof(Index));
         }
 
-        // API: Get Customers List
         [HttpGet]
         public async Task<IActionResult> GetCustomers()
         {
@@ -226,14 +206,14 @@ namespace WebKhachSan.Controllers
                     maKhachHang = k.MaKhachHang,
                     tenKhachHang = k.TenKhachHang,
                     dienthoai = k.DienThoai,
-                    diachi = k.DiaChi
+                    diachi = k.DiaChi,
+                    email = k.Email
                 })
                 .ToListAsync();
 
             return Json(customers);
         }
 
-        // API: Create Customer (Public - for public booking)
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> CreateCustomer([FromBody] CreateCustomerRequest request)
@@ -242,51 +222,67 @@ namespace WebKhachSan.Controllers
             {
                 if (string.IsNullOrEmpty(request.TenKhachHang) || string.IsNullOrEmpty(request.DienThoai))
                 {
-                    return Json(new { success = false, message = "Thông tin không hợp lệ" });
+                    return Json(new { success = false, message = "Thong tin khong hop le" });
                 }
 
-                // Generate customer ID
-                var lastCustomer = await _context.KhachHangs
-                    .OrderByDescending(k => k.MaKhachHang)
-                    .FirstOrDefaultAsync();
-
-                int nextNumber = 1;
-                if (lastCustomer != null && !string.IsNullOrEmpty(lastCustomer.MaKhachHang))
+                if (!string.IsNullOrEmpty(request.Cccd))
                 {
-                    var lastNum = int.TryParse(lastCustomer.MaKhachHang.Replace("KH", ""), out int num) ? num : 0;
-                    nextNumber = lastNum + 1;
+                    var existingByCccd = await _context.KhachHangs
+                        .FirstOrDefaultAsync(k => k.Cccd == request.Cccd);
+
+                    if (existingByCccd != null)
+                    {
+                        return Json(new { success = true, maKhachHang = existingByCccd.MaKhachHang, message = "Su dung khach hang hien co" });
+                    }
                 }
 
-                string maKhachHang = "KH" + nextNumber.ToString("D6");
+                var existingByPhone = await _context.KhachHangs
+                    .FirstOrDefaultAsync(k => k.DienThoai == request.DienThoai);
 
-                // Check phone already exists
-                if (await _context.KhachHangs.AnyAsync(k => k.DienThoai == request.DienThoai))
+                if (existingByPhone != null)
                 {
-                    var existing = await _context.KhachHangs
-                        .FirstOrDefaultAsync(k => k.DienThoai == request.DienThoai);
-                    return Json(new { success = true, maKhachHang = existing.MaKhachHang, message = "Sử dụng khách hàng hiện có" });
+                    return Json(new { success = true, maKhachHang = existingByPhone.MaKhachHang, message = "Su dung khach hang hien co" });
                 }
 
-                // Create customer
-                var khachHang = new KhachHang
+                string maKhachHang = string.Empty;
+
+                for (var attempt = 0; attempt < 5; attempt++)
                 {
-                    MaKhachHang = maKhachHang,
-                    TenKhachHang = request.TenKhachHang,
-                    DienThoai = request.DienThoai,
-                    DiaChi = request.DiaChi
-                };
+                    maKhachHang = await GenerateNextCustomerCodeAsync();
 
-                _context.Add(khachHang);
-                await _context.SaveChangesAsync();
+                    var khachHang = new KhachHang
+                    {
+                        MaKhachHang = maKhachHang,
+                        TenKhachHang = request.TenKhachHang,
+                        DienThoai = request.DienThoai,
+                        DiaChi = request.DiaChi,
+                        Cccd = request.Cccd,
+                        Email = request.Email
+                    };
 
-                _logger.LogInformation("Tạo khách hàng mới từ booking công khai: {0} - {1}", maKhachHang, request.TenKhachHang);
+                    _context.KhachHangs.Add(khachHang);
 
-                return Json(new { success = true, maKhachHang = maKhachHang });
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+
+                        _logger.LogInformation("Tao khach hang moi tu booking cong khai: {MaKhachHang} - {TenKhachHang}",
+                            maKhachHang, request.TenKhachHang);
+
+                        return Json(new { success = true, maKhachHang });
+                    }
+                    catch (DbUpdateException ex) when (IsDuplicateCustomerKey(ex))
+                    {
+                        _context.Entry(khachHang).State = EntityState.Detached;
+                    }
+                }
+
+                return Json(new { success = false, message = "Khong the tao ma khach hang moi. Vui long thu lai." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi tạo khách hàng");
-                return Json(new { success = false, message = "Lỗi máy chủ" });
+                _logger.LogError(ex, "Loi khi tao khach hang");
+                return Json(new { success = false, message = "Loi may chu" });
             }
         }
 
@@ -294,12 +290,35 @@ namespace WebKhachSan.Controllers
         {
             return await _context.KhachHangs.AnyAsync(e => e.MaKhachHang == id);
         }
+
+        private async Task<string> GenerateNextCustomerCodeAsync()
+        {
+            var ids = await _context.KhachHangs
+                .Select(k => k.MaKhachHang)
+                .Where(id => id != null && id.StartsWith("KH"))
+                .ToListAsync();
+
+            var max = ids.Select(id =>
+            {
+                var digits = new string(id.Skip(2).Where(char.IsDigit).ToArray());
+                return int.TryParse(digits, out var number) ? number : 0;
+            }).DefaultIfEmpty(0).Max();
+
+            return $"KH{max + 1:D6}";
+        }
+
+        private static bool IsDuplicateCustomerKey(DbUpdateException ex)
+        {
+            return ex.InnerException is SqlException sqlEx && (sqlEx.Number == 2627 || sqlEx.Number == 2601);
+        }
     }
 
     public class CreateCustomerRequest
     {
-        public string TenKhachHang { get; set; }
-        public string DienThoai { get; set; }
-        public string DiaChi { get; set; }
+        public string TenKhachHang { get; set; } = string.Empty;
+        public string DienThoai { get; set; } = string.Empty;
+        public string DiaChi { get; set; } = string.Empty;
+        public string? Cccd { get; set; }
+        public string? Email { get; set; }
     }
 }

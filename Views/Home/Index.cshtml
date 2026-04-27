@@ -457,9 +457,10 @@
 
             switch (phong.TrangThai)
             {
+                case "Đang sử dụng":
                 case "Có khách":
                     statusClass = "occupied";
-                    statusText = "Có khách";
+                    statusText = "Đang sử dụng";
                     statusColor = "#00236f";
                     break;
                 case "Đã đặt":
@@ -486,7 +487,7 @@
                 </div>
                 <div class="room-status">@statusText</div>
 
-                @if (phong.TrangThai == "Có khách" && currentRental != null)
+                @if ((phong.TrangThai == "Đang sử dụng" || phong.TrangThai == "Có khách") && currentRental != null)
                 {
                     <div class="room-detail">
                         <i class="bi bi-person-fill" style="font-size: 0.6rem;"></i>

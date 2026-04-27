@@ -2,14 +2,14 @@
 
 @{
     Layout = "~/Views/Shared/_DashboardLayout.cshtml";
-    ViewData["Title"] = "Quản Lý Nhân Viên";
+    ViewData["Title"] = "Quan Ly Nhan Vien";
 }
 
 <div class="container-fluid py-4">
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <strong>✓ Thành công!</strong> @TempData["Success"]
+            <strong>Thanh cong!</strong> @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
@@ -17,7 +17,7 @@
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>✗ Lỗi!</strong> @TempData["Error"]
+            <strong>Loi!</strong> @TempData["Error"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
@@ -25,13 +25,12 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
             <h1 class="h3 mb-0" style="color: var(--primary); font-weight: 800; font-family: 'Manrope';">
-                👥 Danh Sách Nhân Viên
+                Danh Sach Nhan Vien
             </h1>
-            <p class="text-muted small mt-2">Quản lý thông tin nhân viên khách sạn</p>
+            <p class="text-muted small mt-2">Quan ly thong tin nhan vien khach san</p>
         </div>
         <a asp-action="Create" class="btn btn-primary" style="background: linear-gradient(135deg, #00236f, #1e3a8a);">
-           
-            Thêm Nhân Viên Mới
+            Them Nhan Vien Moi
         </a>
     </div>
 
@@ -40,12 +39,13 @@
             <table class="table table-hover align-middle mb-0">
                 <thead style="background: #f8f9ff; border-bottom: 2px solid #e6eeff;">
                     <tr>
-                        <th style="color: #00236f; font-weight: 700;">Mã NV</th>
-                        <th style="color: #00236f; font-weight: 700;">Tên Nhân Viên</th>
-                        <th style="color: #00236f; font-weight: 700;">Chức Vụ</th>
-                        <th style="color: #00236f; font-weight: 700;">Điện Thoại</th>
-                        <th style="color: #00236f; font-weight: 700;">Ngày Sinh</th>
-                        <th style="color: #00236f; font-weight: 700; text-align: center;">Thao Tác</th>
+                        <th style="color: #00236f; font-weight: 700;">Ma NV</th>
+                        <th style="color: #00236f; font-weight: 700;">Ten Nhan Vien</th>
+                        <th style="color: #00236f; font-weight: 700;">Chuc Vu</th>
+                        <th style="color: #00236f; font-weight: 700;">Dien Thoai</th>
+                        <th style="color: #00236f; font-weight: 700;">Ngay Sinh</th>
+                        <th style="color: #00236f; font-weight: 700;">Tai Khoan</th>
+                        <th style="color: #00236f; font-weight: 700; text-align: center;">Thao Tac</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,24 +60,31 @@
                                     <small style="color: #6c757d;">@item.DiaChi</small>
                                 </td>
                                 <td>
-                                    <span
-                                        style="background: #e6eeff; color: #00236f; padding: 0.4rem 0.8rem; border-radius: 0.4rem; font-size: 0.85rem; font-weight: 600;">
+                                    <span style="background: #e6eeff; color: #00236f; padding: 0.4rem 0.8rem; border-radius: 0.4rem; font-size: 0.85rem; font-weight: 600;">
                                         @item.ChucVu
                                     </span>
                                 </td>
                                 <td>@item.DienThoai</td>
                                 <td>@(item.NgaySinh?.ToString("dd/MM/yyyy") ?? "---")</td>
+                                <td>
+                                    @if (item.MaTaiKhoanNavigation != null)
+                                    {
+                                        <div class="fw-semibold">@item.MaTaiKhoanNavigation.TenDangNhap</div>
+                                        <small class="text-muted">@item.MaTaiKhoanNavigation.VaiTro</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chua co</span>
+                                    }
+                                </td>
                                 <td style="text-align: center;">
-                                    <a asp-action="Details" asp-route-id="@item.MaNhanVien" class="btn btn-sm btn-outline-info"
-                                           title="Xem chi tiết">
+                                    <a asp-action="Details" asp-route-id="@item.MaNhanVien" class="btn btn-sm btn-outline-info" title="Xem chi tiet">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a asp-action="Edit" asp-route-id="@item.MaNhanVien" class="btn btn-sm btn-outline-warning"
-                                           title="Chỉnh sửa">
+                                    <a asp-action="Edit" asp-route-id="@item.MaNhanVien" class="btn btn-sm btn-outline-warning" title="Chinh sua">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <a asp-action="Delete" asp-route-id="@item.MaNhanVien" class="btn btn-sm btn-outline-danger"
-                                           title="Xóa">
+                                    <a asp-action="Delete" asp-route-id="@item.MaNhanVien" class="btn btn-sm btn-outline-danger" title="Xoa">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </td>
@@ -87,9 +94,9 @@
                     else
                     {
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 3rem 1rem; color: #757682;">
-                                <div style="font-size: 3rem; margin-bottom: 1rem;">📋</div>
-                                <p style="margin: 0;">Chưa có nhân viên nào</p>
+                            <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: #757682;">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">Danh sach trong</div>
+                                <p style="margin: 0;">Chua co nhan vien nao</p>
                             </td>
                         </tr>
                     }
@@ -99,7 +106,7 @@
     </div>
 
     <div style="margin-top: 1.5rem; color: #6c757d; font-size: 0.9rem;">
-        <strong>Tổng cộng:</strong> @Model.Count() nhân viên
+        <strong>Tong cong:</strong> @Model.Count() nhan vien
     </div>
 </div>
 

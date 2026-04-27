@@ -12,7 +12,7 @@ namespace WebKhachSan.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly QuanLyKhachSanContext _context;
         private static readonly string[] TrangThaiPhongTrongVariants = { "Trống", "Tr?ng", "Trá»‘ng" };
-        private static readonly string[] TrangThaiCoKhachVariants = { "Có khách", "CÃ³ khÃ¡ch", "Co khach" };
+        private static readonly string[] TrangThaiCoKhachVariants = { "Đang sử dụng", "Có khách", "CÃ³ khÃ¡ch", "Co khach" };
         private static readonly string[] TrangThaiBaoTriVariants = { "Bảo trì", "B?o trì", "Báº£o trÃ¬" };
         private static readonly string[] TrangThaiDaDatVariants = { "Đã đặt", "Ðã d?t", "ÄÃ£ Ä‘áº·t" };
 

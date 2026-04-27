@@ -7,8 +7,8 @@ namespace WebKhachSan.Models
     {
         public ThuePhong()
         {
+            CthoaDons = new HashSet<CthoaDon>();
             CtthuePhongs = new HashSet<CtthuePhong>();
-            HoaDons = new HashSet<HoaDon>();
         }
 
         public string MaThuePhong { get; set; } = null!;
@@ -18,7 +18,7 @@ namespace WebKhachSan.Models
         public DateTime? NgayTra { get; set; }
 
         public virtual KhachHang? MaKhachHangNavigation { get; set; }
+        public virtual ICollection<CthoaDon> CthoaDons { get; set; }
         public virtual ICollection<CtthuePhong> CtthuePhongs { get; set; }
-        public virtual ICollection<HoaDon> HoaDons { get; set; }
     }
 }

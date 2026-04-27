@@ -206,7 +206,6 @@ namespace WebKhachSan.Migrations
                 columns: table => new
                 {
                     MaHoaDon = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
-                    MaThuePhong = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     MaNhanVien = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     NgayLap = table.Column<DateTime>(type: "date", nullable: true),
                     TongTien = table.Column<double>(type: "float", nullable: true)
@@ -219,11 +218,6 @@ namespace WebKhachSan.Migrations
                         column: x => x.MaNhanVien,
                         principalTable: "NhanVien",
                         principalColumn: "MaNhanVien");
-                    table.ForeignKey(
-                        name: "FK_HoaDon_ThuePhong",
-                        column: x => x.MaThuePhong,
-                        principalTable: "ThuePhong",
-                        principalColumn: "MaThuePhong");
                 });
 
             migrationBuilder.CreateTable(
@@ -232,6 +226,7 @@ namespace WebKhachSan.Migrations
                 {
                     MaCTHD = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: false),
                     MaHoaDon = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
+                    MaThuePhong = table.Column<string>(type: "varchar(20)", unicode: false, maxLength: 20, nullable: true),
                     NoiDung = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     SoTien = table.Column<double>(type: "float", nullable: true)
                 },
@@ -243,6 +238,11 @@ namespace WebKhachSan.Migrations
                         column: x => x.MaHoaDon,
                         principalTable: "HoaDon",
                         principalColumn: "MaHoaDon");
+                    table.ForeignKey(
+                        name: "FK_CTHD_ThuePhong",
+                        column: x => x.MaThuePhong,
+                        principalTable: "ThuePhong",
+                        principalColumn: "MaThuePhong");
                 });
 
             migrationBuilder.CreateIndex(
@@ -254,6 +254,11 @@ namespace WebKhachSan.Migrations
                 name: "IX_CTHoaDon_MaHoaDon",
                 table: "CTHoaDon",
                 column: "MaHoaDon");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CTHoaDon_MaThuePhong",
+                table: "CTHoaDon",
+                column: "MaThuePhong");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CTThuePhong_MaPhong",
@@ -274,11 +279,6 @@ namespace WebKhachSan.Migrations
                 name: "IX_HoaDon_MaNhanVien",
                 table: "HoaDon",
                 column: "MaNhanVien");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_HoaDon_MaThuePhong",
-                table: "HoaDon",
-                column: "MaThuePhong");
 
             migrationBuilder.CreateIndex(
                 name: "IX_NhanVien_MaTaiKhoan",

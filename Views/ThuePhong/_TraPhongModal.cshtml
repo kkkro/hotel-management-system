@@ -3,6 +3,7 @@
 <form id="traPhongForm" method="post" asp-controller="ThuePhong" asp-action="TraPhong" novalidate>
     @Html.AntiForgeryToken()
     <input asp-for="MaThuePhong" type="hidden" />
+    <input asp-for="MaKhachHang" type="hidden" />
 
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
@@ -10,49 +11,78 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-4">
-                    <div class="text-muted small text-uppercase">Mã phiếu thuê</div>
+                    <div class="text-muted small text-uppercase">Ma phieu thue</div>
                     <div class="fw-bold fs-5">@Model.MaThuePhong</div>
                 </div>
                 <div class="col-md-4">
-                    <div class="text-muted small text-uppercase">Phòng</div>
+                    <div class="text-muted small text-uppercase">Phong hien tai</div>
                     <div class="fw-bold fs-5">@Model.SoPhong</div>
                 </div>
                 <div class="col-md-4">
-                    <div class="text-muted small text-uppercase">Khách hàng</div>
+                    <div class="text-muted small text-uppercase">Khach hang</div>
                     <div class="fw-semibold">@Model.TenKhachHang</div>
                 </div>
             </div>
             <div class="row g-3 mt-2">
                 <div class="col-md-6">
-                    <div class="text-muted small text-uppercase">Ngày nhận phòng</div>
+                    <div class="text-muted small text-uppercase">Ngay nhan phong</div>
                     <div class="fw-semibold">@(Model.NgayNhan?.ToString("dd/MM/yyyy") ?? "-")</div>
                 </div>
                 <div class="col-md-6">
-                    <div class="text-muted small text-uppercase">Số ngày đã ở</div>
+                    <div class="text-muted small text-uppercase">So ngay da o</div>
                     <div class="fw-semibold">
                         @{
                             var soNgay = Model.NgayNhan.HasValue
-                                ? (DateTime.Today - Model.NgayNhan.Value.Date).Days
+                                ? Math.Max(1, (DateTime.Today - Model.NgayNhan.Value.Date).Days)
                                 : 0;
                         }
-                        @soNgay ngày
+                        @soNgay ngay
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    @if (Model.RentalOptions.Any())
+    {
+        <div class="mb-4">
+            <label class="form-label fw-semibold">Chon cac phieu thue can tra phong va gom hoa don</label>
+            <div class="border rounded-3 overflow-hidden">
+                @for (var i = 0; i < Model.RentalOptions.Count; i++)
+                {
+                    var rental = Model.RentalOptions[i];
+                    <label class="d-flex align-items-start gap-3 p-3 border-bottom mb-0" style="cursor: pointer;">
+                        <input type="checkbox"
+                               name="SelectedRentalIds"
+                               value="@rental.MaThuePhong"
+                               class="form-check-input mt-1"
+                               @(rental.IsSelected ? "checked" : null) />
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">@rental.MaThuePhong - @rental.SoPhong</div>
+                            <div class="text-muted small">@rental.TenLoaiPhong</div>
+                            <div class="text-muted small">
+                                Nhan phong: @(rental.NgayNhan?.ToString("dd/MM/yyyy") ?? "-")
+                                | Gia thue: @((rental.GiaThue ?? 0).ToString("N0")) VND
+                            </div>
+                        </div>
+                    </label>
+                }
+            </div>
+            <div class="form-text">Moi phieu thue duoc chon se duoc dua thanh mot dong chi tiet trong hoa don.</div>
+        </div>
+    }
+
     <div class="row g-3">
         <div class="col-12">
-            <label asp-for="NgayTra" class="form-label fw-semibold">Ngày trả phòng</label>
+            <label asp-for="NgayTra" class="form-label fw-semibold">Ngay tra phong</label>
             <input asp-for="NgayTra" type="date" class="form-control" />
             <span asp-validation-for="NgayTra" class="text-danger small"></span>
-            <div class="form-text">Ngày trả phòng mặc định là hôm nay.</div>
+            <div class="form-text">Ngay tra phong mac dinh la hom nay.</div>
         </div>
     </div>
 
     <div class="alert alert-warning mt-4 mb-0">
         <i class="bi bi-exclamation-triangle me-2"></i>
-        Sau khi trả phòng, trạng thái phiếu thuê sẽ chuyển sang "Đã trả" và phòng sẽ được giải phóng.
+        Sau khi tra phong, trang thai phieu thue se chuyen sang "Da tra", phong se ve "Trong" va he thong se tao hoa don tu dong.
     </div>
 </form>

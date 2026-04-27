@@ -7,7 +7,7 @@
     var displayTrangThai = Model.TrangThai switch
     {
         "Tr?ng" or "Trá»‘ng" or "Trống" => "Trống",
-        "CÃ³ khÃ¡ch" or "Có khách" => "Có khách",
+        "Đang sử dụng" or "CÃ³ khÃ¡ch" or "Có khách" => "Đang sử dụng",
         "B?o trì" or "Báº£o trÃ¬" or "Bảo trì" => "Bảo trì",
         "Ðã d?t" or "ÄÃ£ Ä‘áº·t" or "Đã đặt" => "Đã đặt",
         _ => Model.TrangThai ?? string.Empty
@@ -16,7 +16,7 @@
     var badgeClass = displayTrangThai switch
     {
         "Trống" => "bg-success",
-        "Có khách" => "bg-warning",
+        "Đang sử dụng" => "bg-warning",
         "Bảo trì" => "bg-danger",
         "Đã đặt" => "bg-info",
         _ => "bg-secondary"
