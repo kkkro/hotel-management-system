@@ -6,7 +6,7 @@ using WebKhachSan.ViewModels;
 
 namespace WebKhachSan.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "StaffAndAbove")]
     public class DatPhongController : Controller
     {
         private readonly QuanLyKhachSanContext _context;

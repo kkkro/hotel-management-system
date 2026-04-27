@@ -6,7 +6,7 @@ using WebKhachSan.ViewModels;
 
 namespace WebKhachSan.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "AdminOnly")]
     public class GiaPhongController : Controller
     {
         private readonly QuanLyKhachSanContext _context;

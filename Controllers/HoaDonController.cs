@@ -5,7 +5,7 @@ using WebKhachSan.Models;
 
 namespace WebKhachSan.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "StaffAndAbove")]
     public class HoaDonController : Controller
     {
         private readonly QuanLyKhachSanContext _context;

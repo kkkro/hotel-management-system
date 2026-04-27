@@ -26,7 +26,6 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
             <h2 class="mb-1 fw-bold">Loai Phong</h2>
-            <p class="text-muted mb-0">Quan ly loai phong va chon nhieu loai phong de tao bang gia hang loat.</p>
         </div>
         <div class="d-flex gap-2">
             <a asp-controller="GiaPhong" asp-action="Index" class="btn btn-outline-primary">
@@ -38,25 +37,11 @@
         </div>
     </div>
 
-    <form method="get" asp-controller="GiaPhong" asp-action="CreateBulk" id="bulkLoaiPhongForm">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
-                <div>
-                    <strong>Chon loai phong hang loat</strong>
-                    <div class="text-muted small">Bang gia se duoc tao cho tat ca loai phong duoc chon.</div>
-                </div>
-                <button type="submit" class="btn btn-success" id="bulkLoaiPhongButton" disabled>
-                    <i class="bi bi-check2-square"></i> Gan gia cho loai phong da chon
-                </button>
-            </div>
 
             <div class="table-responsive">
                 <table class="table table-hover mb-0 align-middle">
                     <thead class="table-light">
                         <tr>
-                            <th class="text-center" style="width: 60px;">
-                                <input type="checkbox" class="form-check-input" id="selectAllLoaiPhong" />
-                            </th>
                             <th class="ps-4 fw-bold text-uppercase text-muted small">Ma Loai</th>
                             <th class="fw-bold text-uppercase text-muted small">Ten Loai</th>
                             <th class="fw-bold text-uppercase text-muted small">Mo Ta</th>
@@ -76,9 +61,7 @@
                                     .FirstOrDefault();
 
                                 <tr>
-                                    <td class="text-center">
-                                        <input type="checkbox" class="form-check-input loai-phong-checkbox" name="selectedLoaiPhongIds" value="@item.MaLoaiPhong" />
-                                    </td>
+                                    
                                     <td class="ps-4 fw-semibold text-primary">@item.MaLoaiPhong</td>
                                     <td class="fw-semibold">@item.TenLoaiPhong</td>
                                     <td class="text-muted small" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -129,7 +112,6 @@
                 </table>
             </div>
         </div>
-    </form>
 </div>
 
 <div class="modal fade" id="modalGiaPhong" tabindex="-1" aria-labelledby="modalGiaPhongLabel" aria-hidden="true">

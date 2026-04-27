@@ -7,7 +7,7 @@ using WebKhachSan.Models;
 
 namespace WebKhachSan.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "AdminOnly")]
     public class NhanVienController : Controller
     {
         private readonly QuanLyKhachSanContext _context;

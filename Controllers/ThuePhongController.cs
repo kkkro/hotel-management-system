@@ -6,7 +6,7 @@ using WebKhachSan.ViewModels;
 
 namespace WebKhachSan.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "StaffAndAbove")]
     public class ThuePhongController : Controller
     {
         private readonly QuanLyKhachSanContext _context;
@@ -336,52 +336,72 @@ namespace WebKhachSan.Controllers
         [HttpGet]
         public async Task<IActionResult> TraPhong(string id)
         {
-            var thuePhong = await _context.ThuePhongs
-                .Include(tp => tp.MaKhachHangNavigation)
-                .Include(tp => tp.CtthuePhongs)
-                    .ThenInclude(ct => ct.MaPhongNavigation)
-                        .ThenInclude(p => p.MaLoaiPhongNavigation)
-                .FirstOrDefaultAsync(tp => tp.MaThuePhong == id);
-
-            if (thuePhong == null)
+            try
             {
-                return NotFound();
-            }
-
-            var model = new TraPhongViewModel
-            {
-                MaThuePhong = thuePhong.MaThuePhong,
-                MaKhachHang = thuePhong.MaKhachHang,
-                TenKhachHang = thuePhong.MaKhachHangNavigation?.TenKhachHang,
-                SoPhong = thuePhong.CtthuePhongs.FirstOrDefault()?.MaPhongNavigation?.SoPhong,
-                NgayNhan = thuePhong.NgayNhan,
-                NgayTra = DateTime.Today
-            };
-
-            var activeRentals = await _context.ThuePhongs
-                .Include(tp => tp.CtthuePhongs)
-                    .ThenInclude(ct => ct.MaPhongNavigation)
-                        .ThenInclude(p => p.MaLoaiPhongNavigation)
-                .Where(tp => tp.MaKhachHang == thuePhong.MaKhachHang && !IsReturnedRentalStatus(tp.TrangThai))
-                .OrderBy(tp => tp.MaThuePhong)
-                .ToListAsync();
-
-            model.SelectedRentalIds = new List<string> { thuePhong.MaThuePhong };
-            model.RentalOptions = activeRentals.Select(tp =>
-            {
-                var chiTiet = tp.CtthuePhongs.FirstOrDefault();
-                return new TraPhongRentalItemViewModel
+                if (string.IsNullOrWhiteSpace(id))
                 {
-                    MaThuePhong = tp.MaThuePhong,
-                    SoPhong = chiTiet?.MaPhongNavigation?.SoPhong ?? chiTiet?.MaPhong,
-                    TenLoaiPhong = chiTiet?.MaPhongNavigation?.MaLoaiPhongNavigation?.TenLoaiPhong,
-                    NgayNhan = tp.NgayNhan,
-                    GiaThue = chiTiet?.GiaThueTaiThoiDiem,
-                    IsSelected = tp.MaThuePhong == thuePhong.MaThuePhong
-                };
-            }).ToList();
+                    _logger.LogWarning("TraPhong called with empty id");
+                    return BadRequest("ID is required");
+                }
 
-            return PartialView("_TraPhongModal", model);
+                var thuePhong = await _context.ThuePhongs
+                    .Include(tp => tp.MaKhachHangNavigation)
+                    .Include(tp => tp.CtthuePhongs)
+                        .ThenInclude(ct => ct.MaPhongNavigation)
+                            .ThenInclude(p => p.MaLoaiPhongNavigation)
+                    .FirstOrDefaultAsync(tp => tp.MaThuePhong == id);
+
+                if (thuePhong == null)
+                {
+                    _logger.LogWarning($"TraPhong not found with id: {id}");
+                    return NotFound();
+                }
+
+                var model = new TraPhongViewModel
+                {
+                    MaThuePhong = thuePhong.MaThuePhong,
+                    MaKhachHang = thuePhong.MaKhachHang,
+                    TenKhachHang = thuePhong.MaKhachHangNavigation?.TenKhachHang,
+                    SoPhong = thuePhong.CtthuePhongs.FirstOrDefault()?.MaPhongNavigation?.SoPhong,
+                    NgayNhan = thuePhong.NgayNhan,
+                    NgayTra = DateTime.Today
+                };
+
+                // Fetch all rentals for customer, then filter on client side
+                // because EF Core cannot translate IsReturnedRentalStatus method to SQL
+                var allRentals = await _context.ThuePhongs
+                    .Include(tp => tp.CtthuePhongs)
+                        .ThenInclude(ct => ct.MaPhongNavigation)
+                            .ThenInclude(p => p.MaLoaiPhongNavigation)
+                    .Where(tp => tp.MaKhachHang == thuePhong.MaKhachHang)
+                    .OrderBy(tp => tp.MaThuePhong)
+                    .ToListAsync();
+                var activeRentals = allRentals
+                    .Where(tp => !IsReturnedRentalStatus(tp.TrangThai))
+                    .ToList();
+
+                model.SelectedRentalIds = new List<string> { thuePhong.MaThuePhong };
+                model.RentalOptions = activeRentals.Select(tp =>
+                {
+                    var chiTiet = tp.CtthuePhongs.FirstOrDefault();
+                    return new TraPhongRentalItemViewModel
+                    {
+                        MaThuePhong = tp.MaThuePhong,
+                        SoPhong = chiTiet?.MaPhongNavigation?.SoPhong ?? chiTiet?.MaPhong,
+                        TenLoaiPhong = chiTiet?.MaPhongNavigation?.MaLoaiPhongNavigation?.TenLoaiPhong,
+                        NgayNhan = tp.NgayNhan,
+                        GiaThue = chiTiet?.GiaThueTaiThoiDiem,
+                        IsSelected = tp.MaThuePhong == thuePhong.MaThuePhong
+                    };
+                }).ToList();
+
+                return PartialView("_TraPhongModal", model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in TraPhong GET action with id: {id}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPost]
@@ -726,49 +746,64 @@ namespace WebKhachSan.Controllers
 
         private async Task PopulateTraPhongOptionsAsync(TraPhongViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(model.MaThuePhong))
+            try
             {
-                return;
-            }
-
-            var anchorRental = await _context.ThuePhongs
-                .Include(tp => tp.MaKhachHangNavigation)
-                .Include(tp => tp.CtthuePhongs)
-                    .ThenInclude(ct => ct.MaPhongNavigation)
-                        .ThenInclude(p => p.MaLoaiPhongNavigation)
-                .FirstOrDefaultAsync(tp => tp.MaThuePhong == model.MaThuePhong);
-
-            if (anchorRental == null)
-            {
-                return;
-            }
-
-            model.MaKhachHang = anchorRental.MaKhachHang;
-            model.TenKhachHang = anchorRental.MaKhachHangNavigation?.TenKhachHang;
-            model.SoPhong = anchorRental.CtthuePhongs.FirstOrDefault()?.MaPhongNavigation?.SoPhong;
-            model.NgayNhan = anchorRental.NgayNhan;
-
-            var activeRentals = await _context.ThuePhongs
-                .Include(tp => tp.CtthuePhongs)
-                    .ThenInclude(ct => ct.MaPhongNavigation)
-                        .ThenInclude(p => p.MaLoaiPhongNavigation)
-                .Where(tp => tp.MaKhachHang == anchorRental.MaKhachHang && !IsReturnedRentalStatus(tp.TrangThai))
-                .OrderBy(tp => tp.MaThuePhong)
-                .ToListAsync();
-
-            model.RentalOptions = activeRentals.Select(tp =>
-            {
-                var chiTiet = tp.CtthuePhongs.FirstOrDefault();
-                return new TraPhongRentalItemViewModel
+                if (string.IsNullOrWhiteSpace(model.MaThuePhong))
                 {
-                    MaThuePhong = tp.MaThuePhong,
-                    SoPhong = chiTiet?.MaPhongNavigation?.SoPhong ?? chiTiet?.MaPhong,
-                    TenLoaiPhong = chiTiet?.MaPhongNavigation?.MaLoaiPhongNavigation?.TenLoaiPhong,
-                    NgayNhan = tp.NgayNhan,
-                    GiaThue = chiTiet?.GiaThueTaiThoiDiem,
-                    IsSelected = model.SelectedRentalIds.Contains(tp.MaThuePhong)
-                };
-            }).ToList();
+                    _logger.LogWarning("PopulateTraPhongOptionsAsync called with empty MaThuePhong");
+                    return;
+                }
+
+                var anchorRental = await _context.ThuePhongs
+                    .Include(tp => tp.MaKhachHangNavigation)
+                    .Include(tp => tp.CtthuePhongs)
+                        .ThenInclude(ct => ct.MaPhongNavigation)
+                            .ThenInclude(p => p.MaLoaiPhongNavigation)
+                    .FirstOrDefaultAsync(tp => tp.MaThuePhong == model.MaThuePhong);
+
+                if (anchorRental == null)
+                {
+                    _logger.LogWarning($"PopulateTraPhongOptionsAsync: Rental not found with MaThuePhong: {model.MaThuePhong}");
+                    return;
+                }
+
+                model.MaKhachHang = anchorRental.MaKhachHang;
+                model.TenKhachHang = anchorRental.MaKhachHangNavigation?.TenKhachHang;
+                model.SoPhong = anchorRental.CtthuePhongs.FirstOrDefault()?.MaPhongNavigation?.SoPhong;
+                model.NgayNhan = anchorRental.NgayNhan;
+
+                // Fetch all rentals for customer, then filter on client side
+                // because EF Core cannot translate IsReturnedRentalStatus method to SQL
+                var allRentals = await _context.ThuePhongs
+                    .Include(tp => tp.CtthuePhongs)
+                        .ThenInclude(ct => ct.MaPhongNavigation)
+                            .ThenInclude(p => p.MaLoaiPhongNavigation)
+                    .Where(tp => tp.MaKhachHang == anchorRental.MaKhachHang)
+                    .OrderBy(tp => tp.MaThuePhong)
+                    .ToListAsync();
+                var activeRentals = allRentals
+                    .Where(tp => !IsReturnedRentalStatus(tp.TrangThai))
+                    .ToList();
+
+                model.RentalOptions = activeRentals.Select(tp =>
+                {
+                    var chiTiet = tp.CtthuePhongs.FirstOrDefault();
+                    return new TraPhongRentalItemViewModel
+                    {
+                        MaThuePhong = tp.MaThuePhong,
+                        SoPhong = chiTiet?.MaPhongNavigation?.SoPhong ?? chiTiet?.MaPhong,
+                        TenLoaiPhong = chiTiet?.MaPhongNavigation?.MaLoaiPhongNavigation?.TenLoaiPhong,
+                        NgayNhan = tp.NgayNhan,
+                        GiaThue = chiTiet?.GiaThueTaiThoiDiem,
+                        IsSelected = model.SelectedRentalIds.Contains(tp.MaThuePhong)
+                    };
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in PopulateTraPhongOptionsAsync for MaThuePhong: {model?.MaThuePhong}");
+                // Don't rethrow - allow the operation to continue with empty options
+            }
         }
 
         private async Task<List<string>> GetAlreadyInvoicedRentalIdsAsync(IEnumerable<string> rentalIds)

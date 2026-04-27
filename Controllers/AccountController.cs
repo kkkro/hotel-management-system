@@ -52,11 +52,12 @@ namespace WebKhachSan.Controllers
             }
 
             // Tạo claims để lưu thông tin đăng nhập
+            var normalizedRole = string.IsNullOrEmpty(taiKhoan.VaiTro) ? "user" : taiKhoan.VaiTro.ToLower().Trim();
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, taiKhoan.MaTaiKhoan.ToString()),
                 new Claim(ClaimTypes.Name, taiKhoan.TenDangNhap),
-                new Claim(ClaimTypes.Role, taiKhoan.VaiTro ?? "User")
+                new Claim(ClaimTypes.Role, normalizedRole)
             };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

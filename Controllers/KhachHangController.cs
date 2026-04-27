@@ -6,7 +6,7 @@ using WebKhachSan.Models;
 
 namespace WebKhachSan.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "StaffAndAbove")]
     public class KhachHangController : Controller
     {
         private readonly QuanLyKhachSanContext _context;
@@ -18,17 +18,34 @@ namespace WebKhachSan.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchTerm)
         {
             _logger.LogInformation("Nguoi dung {User} xem danh sach khach hang", User.Identity?.Name);
 
-            var khachHangs = await _context.KhachHangs
+            var khachHangs = _context.KhachHangs
                 .Include(k => k.ThuePhongs)
                 .Include(k => k.DatPhongs)
+                .AsQueryable();
+
+            // Lọc theo tìm kiếm nếu có
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var searchLower = searchTerm.ToLower().Trim();
+                khachHangs = khachHangs.Where(k =>
+                    k.MaKhachHang.ToLower().Contains(searchLower) ||
+                    k.TenKhachHang.ToLower().Contains(searchLower) ||
+                    k.DienThoai.Contains(searchLower) ||
+                    k.Cccd.Contains(searchLower) ||
+                    k.DiaChi.ToLower().Contains(searchLower)
+                );
+            }
+
+            var result = await khachHangs
                 .OrderBy(k => k.MaKhachHang)
                 .ToListAsync();
 
-            return View(khachHangs);
+            ViewBag.SearchTerm = searchTerm;
+            return View(result);
         }
 
         public async Task<IActionResult> Details(string id)

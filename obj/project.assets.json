@@ -2007,23 +2007,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\phamt\\.nuget\\packages\\": {},
+    "C:\\Users\\ADMIN\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Nam4_HK2\\TTTN_thayTung\\WebKhachSan\\WebKhachSan\\WebKhachSan.csproj",
+      "projectUniqueName": "C:\\Users\\ADMIN\\OneDrive\\Máy tính\\hotel-management-system\\WebKhachSan.csproj",
       "projectName": "WebKhachSan",
-      "projectPath": "D:\\Nam4_HK2\\TTTN_thayTung\\WebKhachSan\\WebKhachSan\\WebKhachSan.csproj",
-      "packagesPath": "C:\\Users\\phamt\\.nuget\\packages\\",
-      "outputPath": "D:\\Nam4_HK2\\TTTN_thayTung\\WebKhachSan\\WebKhachSan\\obj\\",
+      "projectPath": "C:\\Users\\ADMIN\\OneDrive\\Máy tính\\hotel-management-system\\WebKhachSan.csproj",
+      "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\ADMIN\\OneDrive\\Máy tính\\hotel-management-system\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\phamt\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -2044,13 +2044,7 @@
         "warnAsError": [
           "NU1605"
         ]
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.300"
+      }
     },
     "frameworks": {
       "net6.0": {
@@ -2086,7 +2080,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.312\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
       }
     }
   }

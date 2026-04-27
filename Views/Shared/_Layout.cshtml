@@ -19,9 +19,37 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
+                        @if (User.IsInRole("admin"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Admin
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="adminMenu">
+                                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" asp-controller="NhanVien" asp-action="Index">Quản Lý Nhân Viên</a></li>
+                                    <li><a class="dropdown-item" asp-controller="LoaiPhong" asp-action="Index">Quản Lý Loại Phòng</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Phong" asp-action="Index">Quản Lý Phòng</a></li>
+                                    <li><a class="dropdown-item" asp-controller="GiaPhong" asp-action="Index">Quản Lý Giá Phòng</a></li>
+                                </ul>
+                            </li>
+                        }
+                        @if (User.IsInRole("admin") || User.IsInRole("nhanvien"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="KhachHang" asp-action="Index">Khách Hàng</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="DatPhong" asp-action="Index">Đặt Phòng</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="ThuePhong" asp-action="Index">Thuê Phòng</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="HoaDon" asp-action="Index">Hóa Đơn</a>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>

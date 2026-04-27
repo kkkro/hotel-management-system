@@ -37,11 +37,25 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 // Add Authorization
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Policy cho Admin - chỉ Admin mới có quyền
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("admin"));
+
+    // Policy cho Nhân viên - cả Admin và Nhân viên có quyền
+    options.AddPolicy("StaffAndAbove", policy =>
+        policy.RequireRole("admin", "nhanvien"));
+
+    // Policy cho All Roles
+    options.AddPolicy("AllRoles", policy =>
+        policy.RequireRole("admin", "nhanvien"));
+});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseDeveloperExceptionPage(); // Always show detailed exceptions for debugging
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
